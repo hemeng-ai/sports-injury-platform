@@ -1,0 +1,132 @@
+// Prisma Schema — 运动损伤资料管理与指标分析平台
+// 数据库: SQLite (file:./data/sports-injury.db)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== 用户与权限 ====================
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String   // bcrypt hash
+  role      Role     @default(VISITOR)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  files     File[]
+  analyses  AnalysisRecord[]
+}
+
+enum Role {
+  VISITOR    // 游客（只读）
+  ADMIN      // 管理员（可编辑文件/指标）
+  SUPERADMIN // 超级管理员（可管理用户）
+}
+
+// ==================== 文件夹（树状结构） ====================
+
+model Folder {
+  id        String     @id @default(cuid())
+  name      String
+  parentId  String?
+  parent    Folder?    @relation("FolderTree", fields: [parentId], references: [id])
+  children  Folder[]   @relation("FolderTree")
+  sortOrder Int        @default(0)
+  type      FolderType
+  files     File[]
+  createdAt DateTime   @default(now())
+}
+
+enum FolderType {
+  INJURY     // 运动损伤资料
+  INDICATOR  // 指标体系
+  ANALYSIS   // 数据分析
+}
+
+// ==================== 文件 ====================
+
+model File {
+  id           String    @id @default(cuid())
+  name         String
+  originalName String
+  path         String
+  size         Int
+  mimeType     String
+  tags         String    @default("") // JSON array
+  folderId     String
+  folder       Folder    @relation(fields: [folderId], references: [id])
+  uploadedBy   String
+  uploader     User      @relation(fields: [uploadedBy], references: [id])
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime? // 软删除
+}
+
+// ==================== 指标体系 ====================
+
+model IndicatorCategory {
+  id          String      @id @default(cuid())
+  name        String      @unique // 力量/平衡/柔韧性/爆发力/关节活动度/步态/疼痛评分
+  description String?
+  indicators  Indicator[]
+  createdAt   DateTime    @default(now())
+}
+
+model Indicator {
+  id            String         @id @default(cuid())
+  name          String         // 指标名称，如 ACL_LSI, YBT, ROM
+  description   String?
+  unit          String         // 单位，如 % / cm / ° / 分
+  normalRange   String         // 正常范围
+  riskThreshold String?        // 风险阈值
+  testMethod    String?        // 测试方法
+  dataSource    String?        // 数据来源
+  categoryId    String
+  category      IndicatorCategory @relation(fields: [categoryId], references: [id])
+  excelMappings ExcelMapping[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  deletedAt     DateTime?
+}
+
+model ExcelMapping {
+  id          String    @id @default(cuid())
+  columnName  String    // Excel 列名
+  indicatorId String
+  indicator   Indicator @relation(fields: [indicatorId], references: [id])
+  sheetName   String?
+  createdAt   DateTime  @default(now())
+}
+
+model ExcelFile {
+  id         String   @id @default(cuid())
+  name       String
+  path       String
+  sheetCount Int
+  uploadedBy String
+  createdAt  DateTime @default(now())
+}
+
+// ==================== 分析记录 ====================
+
+model AnalysisRecord {
+  id        String       @id @default(cuid())
+  type      AnalysisType
+  config    String       // JSON config
+  result    String       // JSON result
+  createdBy String
+  user      User         @relation(fields: [createdBy], references: [id])
+  createdAt DateTime     @default(now())
+}
+
+enum AnalysisType {
+  DESCRIPTIVE   // 描述统计
+  CORRELATION   // 相关性分析
+  TREND         // 趋势分析
+}
