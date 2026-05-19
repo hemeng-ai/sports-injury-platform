@@ -5,10 +5,11 @@ import { useState, useCallback, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { UploadCloud, ChevronLeft, ChevronRight } from "lucide-react";
+import { UploadCloud, ChevronLeft, ChevronRight, PanelLeftOpen, PanelLeftClose } from "lucide-react";
 import FileUpload from "@/components/files/FileUpload";
 import FileList from "@/components/files/FileList";
 import FileSearch from "@/components/files/FileSearch";
+import TreeView from "@/components/tree/TreeView";
 import { toast } from "sonner";
 
 interface FileRecord {
@@ -37,6 +38,7 @@ export default function FilesPage() {
   const [typeFilter, setTypeFilter] = useState("");
   const [showUpload, setShowUpload] = useState(false);
   const [currentFolderId, setCurrentFolderId] = useState(folderFromUrl || "");
+  const [treeOpen, setTreeOpen] = useState(true);
 
   const userRole = session?.user?.role as string | undefined;
   const canUpload = userRole === "ADMIN" || userRole === "SUPERADMIN";
@@ -82,70 +84,99 @@ export default function FilesPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">文件管理</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            管理运动损伤相关资料文件
-          </p>
+    <div className="flex gap-0 h-[calc(100vh-8rem)]">
+      {/* 左侧文件夹树 */}
+      <div className={`${treeOpen ? "w-60" : "w-0"} flex-shrink-0 transition-all duration-200 overflow-hidden border-r border-border bg-card/50`}>
+        <div className="p-3 overflow-y-auto h-full">
+          <TreeView
+            folderType="INJURY"
+            onSelectFolder={(folderId) => {
+              setCurrentFolderId(folderId);
+              setPage(1);
+            }}
+          />
         </div>
-        {canUpload && (
-          <Button onClick={() => setShowUpload(!showUpload)} variant="outline">
-            <UploadCloud className="h-4 w-4 mr-2" />
-            {showUpload ? "收起上传" : "上传文件"}
-          </Button>
-        )}
       </div>
 
-      {/* 上传区域 */}
-      {showUpload && canUpload && (
-        <FileUpload
-          currentFolderId={currentFolderId}
-          onUploadComplete={fetchFiles}
-        />
-      )}
+      {/* 右侧文件管理 */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setTreeOpen(!treeOpen)}
+                title={treeOpen ? "收起目录" : "展开目录"}
+              >
+                {treeOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
+              </Button>
+              <div>
+                <h1 className="text-2xl font-bold">文件管理</h1>
+                <p className="text-sm text-muted-foreground mt-1">
+                  管理运动损伤相关资料文件
+                </p>
+              </div>
+            </div>
+            {canUpload && (
+              <Button onClick={() => setShowUpload(!showUpload)} variant="outline">
+                <UploadCloud className="h-4 w-4 mr-2" />
+                {showUpload ? "收起上传" : "上传文件"}
+              </Button>
+            )}
+          </div>
 
-      {/* 搜索筛选栏 */}
-      <FileSearch
-        onSearchChange={(s) => { setSearch(s); setPage(1); }}
-        onTypeChange={(t) => { setTypeFilter(t); setPage(1); }}
-      />
+          {/* 上传区域 */}
+          {showUpload && canUpload && (
+            <FileUpload
+              currentFolderId={currentFolderId}
+              onUploadComplete={fetchFiles}
+            />
+          )}
 
-      {/* 文件列表 */}
-      <FileList
-        files={files}
-        loading={loading}
-        userRole={userRole}
-        onDelete={handleDelete}
-      />
+          {/* 搜索筛选栏 */}
+          <FileSearch
+            onSearchChange={(s) => { setSearch(s); setPage(1); }}
+            onTypeChange={(t) => { setTypeFilter(t); setPage(1); }}
+          />
 
-      {/* 分页 */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page <= 1}
-            onClick={() => setPage(page - 1)}
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            上一页
-          </Button>
-          <span className="text-sm text-muted-foreground px-3">
-            {page} / {totalPages}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page >= totalPages}
-            onClick={() => setPage(page + 1)}
-          >
-            下一页
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
+          {/* 文件列表 */}
+          <FileList
+            files={files}
+            loading={loading}
+            userRole={userRole}
+            onDelete={handleDelete}
+          />
+
+          {/* 分页 */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page <= 1}
+                onClick={() => setPage(page - 1)}
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                上一页
+              </Button>
+              <span className="text-sm text-muted-foreground px-3">
+                {page} / {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= totalPages}
+                onClick={() => setPage(page + 1)}
+              >
+                下一页
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
