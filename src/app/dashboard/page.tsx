@@ -3,9 +3,10 @@
 /**
  * Dashboard 首页 — /dashboard
  *
- * 展示 4 张统计卡片：文件总数 / 指标总数 / 最近上传 / 用户数
+ * 展示 4 张统计卡片：文件总数 / 指标总数 / 最近上传 / 用户数 + 密码修改提醒
  */
 import { useEffect, useState } from "react";
+import PasswordReminder from "@/components/auth/PasswordReminder";
 import {
   Card,
   CardContent,
@@ -108,8 +109,10 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6">
-      {CARD_CONFIGS.map((config) => {
+    <div className="p-6 space-y-0">
+      <PasswordReminder />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {CARD_CONFIGS.map((config) => {
         const Icon = config.icon;
         const value = stats[config.key] as number;
         const trend = stats[config.trendKey] as string;
@@ -133,6 +136,7 @@ export default function DashboardPage() {
           </Card>
         );
       })}
+      </div>
     </div>
   );
 }

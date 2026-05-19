@@ -13,6 +13,16 @@ import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 
 // ---- mock 依赖 ----
+// mock localStorage
+Object.defineProperty(window, "localStorage", {
+  value: { getItem: jest.fn(() => null), setItem: jest.fn(), removeItem: jest.fn() },
+  writable: true,
+});
+
+jest.mock("next-auth/react", () => ({
+  useSession: () => ({ data: { user: { passwordChangedAt: new Date().toISOString() } }, status: "authenticated" }),
+}));
+
 jest.mock("next/navigation", () => ({
   useRouter: () => ({
     push: jest.fn(),

@@ -40,6 +40,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           id: user.id,
           name: user.username,
           role: user.role,
+          passwordChangedAt: user.passwordChangedAt?.toISOString() || null,
         };
       },
     }),
@@ -49,18 +50,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   callbacks: {
     async jwt({ token, user }) {
-      // 初始登录时将 role 嵌入 JWT
       if (user) {
         token.role = (user as { role: string }).role;
         token.id = user.id;
+        token.passwordChangedAt = (user as Record<string, unknown>).passwordChangedAt as string | null;
       }
       return token;
     },
     async session({ session, token }) {
-      // 将 role 从 JWT 传递到 session
       if (session.user) {
         (session.user as { role: string }).role = token.role as string;
         (session.user as { id: string }).id = token.id as string;
+        (session.user as Record<string, unknown>).passwordChangedAt = token.passwordChangedAt;
       }
       return session;
     },

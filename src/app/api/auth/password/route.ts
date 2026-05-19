@@ -37,9 +37,12 @@ export async function PUT(request: NextRequest): Promise<Response> {
     return NextResponse.json({ error: "原密码错误" }, { status: 403 });
   }
 
-  // 更新密码
+  // 更新密码 + 记录修改时间
   const hash = await bcrypt.hash(newPassword, 12);
-  await prisma.user.update({ where: { id: userId }, data: { password: hash } });
+  await prisma.user.update({
+    where: { id: userId },
+    data: { password: hash, passwordChangedAt: new Date() },
+  });
 
   return NextResponse.json({ success: true, message: "密码已修改" });
 }
