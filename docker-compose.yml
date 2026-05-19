@@ -1,0 +1,24 @@
+# 运动损伤资料管理与指标分析平台 — Docker Compose 一键部署
+# 启动方式: docker-compose up -d
+# 访问地址: http://localhost:3000
+
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sports-injury-platform
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=file:/app/data/sports-injury.db
+      - AUTH_SECRET=${AUTH_SECRET:-change-me-to-a-random-secret-at-least-32-chars}
+      - AUTH_URL=${AUTH_URL:-http://localhost:3000}
+    volumes:
+      # 持久化 SQLite 数据库
+      - ./data:/app/data
+      # 持久化上传文件
+      - ./uploads:/app/uploads
+    restart: unless-stopped
