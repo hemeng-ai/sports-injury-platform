@@ -16,13 +16,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Activity, LogOut, User } from "lucide-react";
+import Link from "next/link";
+import { Activity, LogOut, Settings, User } from "lucide-react";
 
-/** 角色显示标签的中文映射 */
+/** 角色显示标签 */
 const ROLE_LABELS: Record<string, string> = {
-  VISITOR: "VISITOR",
-  ADMIN: "ADMIN",
-  SUPERADMIN: "SUPERADMIN",
+  VISITOR: "游客",
+  ADMIN: "管理员",
+  SUPERADMIN: "超级管理员",
 };
 
 /** 角色对应 Badge variant */
@@ -93,6 +94,12 @@ export default function Navbar() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem asChild className="cursor-pointer">
+                  <Link href="/settings">
+                    <Settings className="h-4 w-4" />
+                    <span>个人设置</span>
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   variant="destructive"
                   onClick={handleSignOut}

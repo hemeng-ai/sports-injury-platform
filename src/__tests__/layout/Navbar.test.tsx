@@ -98,7 +98,7 @@ describe("Navbar 组件", () => {
 
     // 跳过由于 shadcn Badge 使用的 data 属性查找的替代方案
     // 直接文本查找
-    const badge = screen.getByText("ADMIN");
+    const badge = screen.getByText("管理员");
     expect(badge).toBeInTheDocument();
   });
 
@@ -108,7 +108,7 @@ describe("Navbar 组件", () => {
       status: "authenticated",
     };
     render(<Navbar />);
-    expect(screen.getByText("VISITOR")).toBeInTheDocument();
+    expect(screen.getByText("游客")).toBeInTheDocument();
   });
 
   it("用户已登录时显示 Role Badge（SUPERADMIN）", () => {
@@ -117,7 +117,7 @@ describe("Navbar 组件", () => {
       status: "authenticated",
     };
     render(<Navbar />);
-    expect(screen.getByText("SUPERADMIN")).toBeInTheDocument();
+    expect(screen.getByText("超级管理员")).toBeInTheDocument();
   });
 
   it("status=loading 时不显示用户区域（显示骨架占位）", () => {
@@ -143,7 +143,7 @@ describe("Navbar 组件", () => {
     expect(screen.getByText("运动损伤资料平台")).toBeInTheDocument();
     // 用户区域不显示（无 Avatar、无用户名、无 Role Badge）
     expect(screen.queryByText("张")).not.toBeInTheDocument();
-    expect(screen.queryByText("ADMIN")).not.toBeInTheDocument();
+    expect(screen.queryByText("管理员")).not.toBeInTheDocument();
   });
 
   it("DropdownMenu 中显示用户名和角色信息", async () => {
