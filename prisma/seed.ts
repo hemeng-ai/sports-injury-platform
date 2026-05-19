@@ -9,24 +9,27 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("[Seed] 开始填充初始数据...");
 
-  // 检查是否已存在 SuperAdmin
-  const existingAdmin = await prisma.user.findUnique({
-    where: { username: "admin" },
-  });
+  // 三种角色默认账号
+  const defaultUsers = [
+    { username: "admin", password: "admin123", role: "SUPERADMIN" as const, label: "超级管理员" },
+    { username: "doctor", password: "doctor123", role: "ADMIN" as const, label: "管理员" },
+    { username: "visitor", password: "visitor123", role: "VISITOR" as const, label: "游客" },
+  ];
 
-  if (existingAdmin) {
-    console.log("[Seed] SuperAdmin 已存在，跳过用户创建");
-  } else {
-    // 创建 SuperAdmin
-    const hashedPassword = await bcrypt.hash("admin123", 12);
-    await prisma.user.create({
-      data: {
-        username: "admin",
-        password: hashedPassword,
-        role: "SUPERADMIN",
-      },
-    });
-    console.log("[Seed] SuperAdmin 创建完成 (admin/admin123)");
+  for (const du of defaultUsers) {
+    const existing = await prisma.user.findUnique({ where: { username: du.username } });
+    if (existing) {
+      console.log(`[Seed] ${du.label} (${du.username}) 已存在，跳过`);
+    } else {
+      await prisma.user.create({
+        data: {
+          username: du.username,
+          password: await bcrypt.hash(du.password, 12),
+          role: du.role,
+        },
+      });
+      console.log(`[Seed] ${du.label} 创建完成 (${du.username}/${du.password})`);
+    }
   }
 
   // 创建默认指标分类
