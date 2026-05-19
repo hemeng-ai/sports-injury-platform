@@ -3,10 +3,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkApiPermission } from "@/lib/rbac";
 
+export const runtime = "nodejs";
+
 /**
  * PUT /api/folders/[id] — 更新文件夹（重命名 / 移动 / 排序）
  * Permission: Admin+
  */
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -42,6 +45,7 @@ export async function PUT(
  * DELETE /api/folders/[id] — 删除文件夹（级联删除子文件夹 + 文件）
  * Permission: Admin+
  */
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },

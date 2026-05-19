@@ -3,11 +3,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkApiPermission } from "@/lib/rbac";
 
+export const runtime = "nodejs";
+
 /**
  * GET /api/folders — 获取完整文件夹树
  * 返回指定类型的嵌套树结构
  * Permission: 所有登录用户
  */
+
 export async function GET(request: NextRequest): Promise<Response> {
   const authError = await checkApiPermission(request, "VISITOR");
   if (authError) return authError;
@@ -60,6 +63,7 @@ export async function GET(request: NextRequest): Promise<Response> {
  * Body: { name, parentId?, type }
  * Permission: Admin+
  */
+
 export async function POST(request: NextRequest): Promise<Response> {
   const authError = await checkApiPermission(request, "ADMIN");
   if (authError) return authError;

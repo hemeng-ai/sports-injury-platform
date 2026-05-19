@@ -5,7 +5,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { FileText } from "lucide-react";
-import { formatFileSize } from "@/lib/upload";
+import { formatFileSize } from "@/lib/upload-utils";
 
 interface FileRecord {
   id: string;

@@ -13,7 +13,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -218,7 +218,7 @@ export default function IndicatorsPage() {
             </div>
             <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v); setPage(1); }}>
               <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="全部分类" />
+                <span>全部分类</span>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">全部分类</SelectItem>
@@ -418,7 +418,7 @@ function IndicatorDialog({
           <div>
             <Label>分类 *</Label>
             <Select value={form.categoryId} onValueChange={(v) => setForm({ ...form, categoryId: v })}>
-              <SelectTrigger><SelectValue placeholder="选择分类" /></SelectTrigger>
+              <SelectTrigger><span>选择分类</span></SelectTrigger>
               <SelectContent>
                 {categories.map((c) => (
                   <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>

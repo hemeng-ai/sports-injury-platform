@@ -1,7 +1,7 @@
 "use client";
 
 // 文件管理页面 — 集成上传、搜索、列表、预览
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ interface FileRecord {
   uploader?: { id: string; username: string; role: string } | null;
 }
 
-export default function FilesPage() {
+function FilesPageContent() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const folderFromUrl = searchParams.get("folderId");
@@ -178,5 +178,13 @@ export default function FilesPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function FilesPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center py-16"><p className="text-muted-foreground">加载中...</p></div>}>
+      <FilesPageContent />
+    </Suspense>
   );
 }

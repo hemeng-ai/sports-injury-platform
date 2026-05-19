@@ -4,7 +4,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger,
 } from "@/components/ui/select";
 import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -57,7 +57,7 @@ export default function FileSearch({ onSearchChange, onTypeChange }: Props) {
       </div>
       <Select value={typeValue} onValueChange={handleTypeChange}>
         <SelectTrigger className="w-[140px]">
-          <SelectValue placeholder="文件类型" />
+          <span>文件类型</span>
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">全部类型</SelectItem>

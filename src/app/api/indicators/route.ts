@@ -3,11 +3,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkApiPermission } from "@/lib/rbac";
 
+export const runtime = "nodejs";
+
 /**
  * GET /api/indicators — 获取指标列表
  * Query: ?categoryId=&search=&page=&limit=
  * Permission: 所有登录用户
  */
+
 export async function GET(request: NextRequest): Promise<Response> {
   const authError = await checkApiPermission(request, "VISITOR");
   if (authError) return authError;
@@ -46,6 +49,7 @@ export async function GET(request: NextRequest): Promise<Response> {
  * POST /api/indicators — 创建指标
  * Permission: Admin+
  */
+
 export async function POST(request: NextRequest): Promise<Response> {
   const authError = await checkApiPermission(request, "ADMIN");
   if (authError) return authError;

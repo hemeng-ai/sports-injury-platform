@@ -5,7 +5,7 @@ import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Upload, Loader2, File as FileIcon } from "lucide-react";
 import { toast } from "sonner";
-import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE, formatFileSize } from "@/lib/upload";
+import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from "@/lib/upload-utils";
 
 interface Props {
   currentFolderId?: string;

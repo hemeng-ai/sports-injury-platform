@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { checkApiPermission } from "@/lib/rbac";
 import { calculateDescriptive } from "@/lib/statistics";
 
+export const runtime = "nodejs";
+
 export async function POST(request: NextRequest): Promise<Response> {
   const authError = await checkApiPermission(request, "VISITOR");
   if (authError) return authError;

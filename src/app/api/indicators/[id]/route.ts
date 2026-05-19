@@ -3,9 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkApiPermission } from "@/lib/rbac";
 
-/**
- * GET /api/indicators/[id] — 获取单个指标
- */
+export const runtime = "nodejs";
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -24,10 +23,6 @@ export async function GET(
   return NextResponse.json(indicator);
 }
 
-/**
- * PUT /api/indicators/[id] — 编辑指标
- * Permission: Admin+
- */
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -63,10 +58,6 @@ export async function PUT(
   return NextResponse.json(updated);
 }
 
-/**
- * DELETE /api/indicators/[id] — 软删除指标
- * Permission: Admin+
- */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },

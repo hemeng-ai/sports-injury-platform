@@ -16,6 +16,8 @@ await mkdir(UPLOAD_DIR, { recursive: true });
  * 返回 Sheet 结构、数据预览、指标映射建议
  * Permission: Admin+
  */
+export const runtime = "nodejs";
+
 export async function POST(request: NextRequest): Promise<Response> {
   const authError = await checkApiPermission(request, "ADMIN");
   if (authError) return authError;

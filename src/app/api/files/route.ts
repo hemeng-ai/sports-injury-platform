@@ -7,8 +7,11 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import { saveFile, validateFileType, MAX_FILE_SIZE } from "@/lib/upload";
 import { checkApiPermission } from "@/lib/rbac";
+
+export const runtime = "nodejs";
 
 /**
  * POST /api/files — 文件上传
@@ -16,6 +19,7 @@ import { checkApiPermission } from "@/lib/rbac";
  * Fields: file (binary), folderId (string)
  * Permission: ADMIN+
  */
+
 export async function POST(request: NextRequest): Promise<Response> {
   // 权限校验
   const permissionError = await checkApiPermission(request, "ADMIN");
@@ -82,6 +86,7 @@ export async function POST(request: NextRequest): Promise<Response> {
  * Query: ?folderId=&search=&type=&page=&limit=
  * Permission: 所有登录用户
  */
+
 export async function GET(request: NextRequest): Promise<Response> {
   // 权限校验
   const permissionError = await checkApiPermission(request, "VISITOR");
@@ -115,12 +120,12 @@ export async function GET(request: NextRequest): Promise<Response> {
     // 查询文件列表（含分页）
     const [files, total] = await Promise.all([
       prisma.file.findMany({
-        where: where as any,
+        where: where as Prisma.FileWhereInput,
         orderBy: { createdAt: "desc" },
         skip: (page - 1) * limit,
         take: limit,
       }),
-      prisma.file.count({ where: where as any }),
+      prisma.file.count({ where: where as Prisma.FileWhereInput }),
     ]);
 
     return NextResponse.json({

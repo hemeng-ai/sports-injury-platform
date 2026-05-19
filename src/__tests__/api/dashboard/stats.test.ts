@@ -1,12 +1,11 @@
 /**
- * Dashboard Stats API 测试 — src/app/api/dashboard/stats/route.ts
- *
- * 直接测试 handleGet()，通过依赖注入传入 mock jwtVerify
+ * Dashboard Stats API 测试 — 直接测试 handleGet()
+ * 从 @/lib/dashboard-stats 导入，通过依赖注入传入 mock jwtVerify
  */
 
 // ---- jsdom polyfill ----
 if (typeof TextEncoder === "undefined") {
-  // @ts-ignore
+  // @ts-expect-error — jsdom polyfill
   globalThis.TextEncoder = class TextEncoder {
     encode(str: string): Uint8Array {
       const buf = new Uint8Array(str.length);
@@ -34,7 +33,7 @@ let handleGet: (
 ) => Promise<Response>;
 
 beforeAll(async () => {
-  const mod = await import("@/app/api/dashboard/stats/route");
+  const mod = await import("@/lib/dashboard-stats");
   handleGet = mod.handleGet;
 });
 

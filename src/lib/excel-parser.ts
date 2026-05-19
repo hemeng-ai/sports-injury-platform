@@ -206,7 +206,7 @@ export async function previewExcelHeaders(
   return workbook.SheetNames.map((name) => {
     const ws = workbook.Sheets[name];
     const data = XLSX.utils.sheet_to_json(ws, { defval: null });
-    const headers = data.length > 0 ? Object.keys(data[0]) : [];
+    const headers = data.length > 0 ? Object.keys(data[0] as object) : [];
     return { sheetName: name, headers, rowCount: data.length };
   });
 }

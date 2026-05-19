@@ -11,7 +11,7 @@ import {
   Eye, Download, Trash2, FileText, Image, FileSpreadsheet,
 } from "lucide-react";
 import { toast } from "sonner";
-import { formatFileSize } from "@/lib/upload";
+import { formatFileSize } from "@/lib/upload-utils";
 import FilePreview from "./FilePreview";
 
 interface FileRecord {
