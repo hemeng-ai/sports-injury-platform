@@ -21,7 +21,11 @@
  */
 import { decode } from "@auth/core/jwt";
 
-const AUTH_SECRET = process.env.AUTH_SECRET || "84f47da9ce4098f682af965abe5127f86d78cfc2c85cd82ad6e8656496222f58";
+function getAuthSecret(): string {
+  const secret = process.env.AUTH_SECRET;
+  if (!secret) throw new Error("AUTH_SECRET environment variable is not set");
+  return secret;
+}
 
 /**
  * 解密 NextAuth 生成的 JWE session token
@@ -33,7 +37,7 @@ export async function decryptSessionToken(
   try {
     const payload = await decode({
       token,
-      secret: AUTH_SECRET,
+      secret: getAuthSecret(),
       salt: "authjs.session-token",
     });
     return payload as Record<string, unknown>;

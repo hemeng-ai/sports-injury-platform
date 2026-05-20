@@ -56,7 +56,7 @@ async function getUserId(request: Request): Promise<string | null> {
   try {
     const payload = await decode({
       token: match[1],
-      secret: process.env.AUTH_SECRET || "default-secret-change-me",
+      secret: process.env.AUTH_SECRET!,
       salt: "authjs.session-token",
     });
     return (payload as { sub?: string }).sub || null;

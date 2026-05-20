@@ -24,7 +24,7 @@ async function defaultJwtVerify(
   try {
     const payload = await decode({
       token,
-      secret: process.env.AUTH_SECRET || "default-secret-change-me",
+      secret: process.env.AUTH_SECRET!,
       salt: "authjs.session-token",
     });
     return payload as Record<string, unknown>;

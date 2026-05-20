@@ -1,6 +1,9 @@
 import type { Config } from "jest";
 
 const config: Config = {
+  // 预置测试环境变量（在模块加载前执行）
+  setupFiles: ["<rootDir>/jest.setup.ts"],
+
   // 使用 SWC 转译 TypeScript/TSX，启用 React 自动 JSX 运行时
   transform: {
     "^.+\\.(t|j)sx?$": [

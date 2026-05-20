@@ -164,7 +164,7 @@ async function getUserIdFromRequest(request: Request): Promise<string> {
     try {
       const payload = await decode({
         token: sessionToken,
-        secret: process.env.AUTH_SECRET || "default-secret-change-me",
+        secret: process.env.AUTH_SECRET!,
         salt: "authjs.session-token",
       });
       return (payload as { sub?: string }).sub || "unknown";
