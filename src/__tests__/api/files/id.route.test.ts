@@ -32,11 +32,11 @@ jest.mock("next/server", () => ({
   },
 }));
 
-// ---- mock jose ----
-const mockJwtVerify = jest.fn();
+// ---- mock @auth/core/jwt ----
+const mockDecode = jest.fn();
 
-jest.mock("jose", () => ({
-  jwtVerify: (...args: unknown[]) => mockJwtVerify(...args),
+jest.mock("@auth/core/jwt", () => ({
+  decode: (...args: unknown[]) => mockDecode(...args),
 }));
 
 let GET: (req: Request, ctx: { params: { id: string } }) => Promise<Response>;
@@ -70,9 +70,7 @@ function createRequest(role: string, url = "https://example.com/api/files/file-1
 
 /** 模拟 JWT 认证成功 */
 function mockAuthSuccess(role = "ADMIN") {
-  mockJwtVerify.mockResolvedValueOnce({
-    payload: { role, sub: "user-1" },
-  });
+  mockDecode.mockResolvedValueOnce({ role, sub: "user-1" });
 }
 
 /** 完整的文件 mock 数据 */

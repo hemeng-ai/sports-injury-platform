@@ -45,11 +45,11 @@ jest.mock("@/lib/upload", () => {
   };
 });
 
-// ---- mock jose ----
-const mockJwtVerify = jest.fn();
+// ---- mock @auth/core/jwt ----
+const mockDecode = jest.fn();
 
-jest.mock("jose", () => ({
-  jwtVerify: (...args: unknown[]) => mockJwtVerify(...args),
+jest.mock("@auth/core/jwt", () => ({
+  decode: (...args: unknown[]) => mockDecode(...args),
 }));
 
 let POST: (req: Request) => Promise<Response>;
@@ -88,14 +88,12 @@ function createAuthRequest(
 
 /** 模拟认证成功 */
 function mockAuthSuccess(role = "ADMIN") {
-  mockJwtVerify.mockResolvedValueOnce({
-    payload: { role, sub: "user-1" },
-  });
+  mockDecode.mockResolvedValueOnce({ role, sub: "user-1" });
 }
 
 /** 模拟认证失败 */
 function mockAuthFail() {
-  mockJwtVerify.mockRejectedValueOnce(new Error("invalid token"));
+  mockDecode.mockRejectedValueOnce(new Error("invalid token"));
 }
 
 /** 创建 mock FormData（简化版） */
@@ -135,8 +133,8 @@ describe("POST /api/files — 文件上传", () => {
       );
       const req = createAuthRequest("POST", fd, "VISITOR");
       // 使 token 验证失败
-      mockJwtVerify.mockReset();
-      mockJwtVerify.mockRejectedValueOnce(new Error("expired"));
+      mockDecode.mockReset();
+      mockDecode.mockRejectedValueOnce(new Error("expired"));
 
       const res = await POST(req);
       expect(res.status).toBe(401);

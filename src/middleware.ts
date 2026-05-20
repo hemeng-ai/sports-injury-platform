@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { jwtVerify } from "jose";
 import { canAccess } from "@/lib/rbac";
+import { decryptSessionToken } from "@/lib/session";
 import type { UserRole } from "@/types";
 
 // 路径白名单：无需认证即可访问
@@ -9,7 +9,7 @@ const PUBLIC_PATHS = ["/login"];
 // API 白名单前缀（如 /api/auth/*）
 const PUBLIC_API_PREFIXES = ["/api/auth/"];
 // 公开 API 精确路径
-const PUBLIC_API_PATHS = ["/api/auth/login", "/api/auth/register"];
+const PUBLIC_API_PATHS = ["/api/auth/login", "/api/auth/register", "/api/debug"];
 // 静态资源白名单前缀
 const STATIC_PREFIXES = ["/_next", "/favicon.ico", "/public"];
 
@@ -34,15 +34,8 @@ async function verifyToken(
 
   if (!sessionToken) return null;
 
-  try {
-    const secret = new TextEncoder().encode(
-      process.env.AUTH_SECRET || "default-secret-change-me",
-    );
-    const { payload } = await jwtVerify(sessionToken, secret);
-    return payload as { role?: string; sub?: string };
-  } catch {
-    return null;
-  }
+  const payload = await decryptSessionToken(sessionToken);
+  return payload as { role?: string; sub?: string } | null;
 }
 
 /**

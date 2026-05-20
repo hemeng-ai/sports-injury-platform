@@ -1,12 +1,13 @@
 // NextAuth v5 配置（Credentials Provider + JWT）
 // 此文件将在 Task 1.2 中完整实现
 
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { prisma } from "./prisma";
 import bcrypt from "bcryptjs";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  trustHost: true,
   providers: [
     Credentials({
       name: "credentials",
@@ -15,16 +16,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "密码", type: "password" },
       },
       async authorize(credentials) {
+        // 空字段 → code: "empty_fields"
         if (!credentials?.username || !credentials?.password) {
-          return null;
+          const err = new CredentialsSignin("请输入用户名和密码");
+          err.code = "empty_fields";
+          throw err;
         }
 
         const user = await prisma.user.findUnique({
           where: { username: credentials.username as string },
         });
 
+        // 用户不存在或密码错误 → code: "invalid_credentials"
         if (!user) {
-          return null;
+          const err = new CredentialsSignin("用户名或密码不正确");
+          err.code = "invalid_credentials";
+          throw err;
         }
 
         const isValid = await bcrypt.compare(
@@ -33,7 +40,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         );
 
         if (!isValid) {
-          return null;
+          const err = new CredentialsSignin("用户名或密码不正确");
+          err.code = "invalid_credentials";
+          throw err;
         }
 
         return {

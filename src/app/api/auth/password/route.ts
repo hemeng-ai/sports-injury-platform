@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkApiPermission } from "@/lib/rbac";
+import { decode } from "@auth/core/jwt";
 import bcrypt from "bcryptjs";
 
 export const runtime = "nodejs";
@@ -47,14 +48,17 @@ export async function PUT(request: NextRequest): Promise<Response> {
   return NextResponse.json({ success: true, message: "密码已修改" });
 }
 
+/** 从 session cookie 解密 JWE token 获取用户 ID（禁止直接 jwtDecrypt + 原始 secret） */
 async function getUserId(request: Request): Promise<string | null> {
   const cookie = request.headers.get("cookie") || "";
   const match = cookie.match(/(?:authjs\.session-token|__Secure-authjs\.session-token)=([^;]+)/);
   if (!match) return null;
   try {
-    const { jwtVerify } = await import("jose");
-    const secret = new TextEncoder().encode(process.env.AUTH_SECRET || "default-secret-change-me");
-    const { payload } = await jwtVerify(match[1], secret);
+    const payload = await decode({
+      token: match[1],
+      secret: process.env.AUTH_SECRET || "default-secret-change-me",
+      salt: "authjs.session-token",
+    });
     return (payload as { sub?: string }).sub || null;
   } catch { return null; }
 }

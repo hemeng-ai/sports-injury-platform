@@ -10,6 +10,7 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { saveFile, validateFileType, MAX_FILE_SIZE } from "@/lib/upload";
 import { checkApiPermission } from "@/lib/rbac";
+import { decode } from "@auth/core/jwt";
 
 export const runtime = "nodejs";
 
@@ -143,6 +144,7 @@ export async function GET(request: NextRequest): Promise<Response> {
 
 /**
  * 从请求的 session cookie 中提取用户 ID
+ * 使用 @auth/core/jwt decode() 解密 JWE token（禁止直接 jwtDecrypt + 原始 secret）
  */
 async function getUserIdFromRequest(request: Request): Promise<string> {
   const cookieHeader = request.headers.get("cookie") || "";
@@ -160,11 +162,11 @@ async function getUserIdFromRequest(request: Request): Promise<string> {
 
   if (sessionToken) {
     try {
-      const { jwtVerify } = await import("jose");
-      const secret = new TextEncoder().encode(
-        process.env.AUTH_SECRET || "default-secret-change-me",
-      );
-      const { payload } = await jwtVerify(sessionToken, secret);
+      const payload = await decode({
+        token: sessionToken,
+        secret: process.env.AUTH_SECRET || "default-secret-change-me",
+        salt: "authjs.session-token",
+      });
       return (payload as { sub?: string }).sub || "unknown";
     } catch {
       // token 解析失败，返回默认值

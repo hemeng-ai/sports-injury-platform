@@ -18,6 +18,15 @@ const QUICK_LOGINS = [
   { label: "超级管理员", icon: ShieldCheck, role: "SUPERADMIN", username: "admin", password: "admin123", variant: "default" as const },
 ];
 
+/** 根据 NextAuth 返回的 error code 映射中文提示 */
+function getErrorMessage(code: string | undefined): string {
+  switch (code) {
+    case "empty_fields": return "请输入用户名和密码";
+    case "invalid_credentials": return "用户名或密码不正确";
+    default: return "登录失败";
+  }
+}
+
 export default function LoginPage() {
   const router = useRouter();
 
@@ -37,8 +46,12 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const result = await signIn("credentials", { username: u, password: p, redirect: false });
-      if (result?.error) { toast.error("登录失败"); return; }
-      if (result?.ok) { toast.success("登录成功"); router.push("/dashboard"); }
+      // NextAuth 认证失败时 HTTP 仍返回 200，须先检查 error 再检查 ok
+      if (result?.error) {
+        toast.error(getErrorMessage(result?.code));
+      } else if (result?.ok) {
+        router.push("/dashboard");
+      }
     } catch { toast.error("登录失败"); }
     finally { setLoading(false); }
   };
@@ -50,8 +63,12 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const result = await signIn("credentials", { username: username.trim(), password, redirect: false });
-      if (result?.error) { toast.error("用户名或密码错误"); return; }
-      if (result?.ok) { toast.success("登录成功"); router.push("/dashboard"); }
+      // NextAuth 认证失败时 HTTP 仍返回 200，须先检查 error 再检查 ok
+      if (result?.error) {
+        toast.error(getErrorMessage(result?.code));
+      } else if (result?.ok) {
+        router.push("/dashboard");
+      }
     } catch { toast.error("登录失败"); }
     finally { setLoading(false); }
   };

@@ -1,10 +1,16 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // 开发模式下 turbopack 暂不启用（shadcn/ui 兼容性）
+  // 跳过 node_modules 文件监听，避免 Windows 文件句柄耗尽导致崩溃
+  webpack: (config) => {
+    config.watchOptions = {
+      ignored: /node_modules/,
+    };
+    return config;
+  },
   experimental: {
     serverActions: {
-      bodySizeLimit: "50mb", // 允许大文件上传
+      bodySizeLimit: "50mb",
     },
   },
 };

@@ -14,10 +14,10 @@
  */
 
 // ---- mock 依赖 ----
-const mockJwtVerify = jest.fn();
+const mockDecode = jest.fn();
 
-jest.mock("jose", () => ({
-  jwtVerify: (...args: unknown[]) => mockJwtVerify(...args),
+jest.mock("@auth/core/jwt", () => ({
+  decode: (...args: unknown[]) => mockDecode(...args),
 }));
 
 // ---- 导入被测模块 ----
@@ -220,7 +220,7 @@ describe("checkApiPermission — API 权限校验", () => {
     });
 
     it("cookie 存在但 token 无效/过期时返回 401 JSON", async () => {
-      mockJwtVerify.mockRejectedValueOnce(new Error("token expired"));
+      mockDecode.mockRejectedValueOnce(new Error("token expired"));
 
       const req = createApiRequest("invalid-token-value");
       const result = await checkApiPermission(req, "VISITOR");
@@ -244,9 +244,7 @@ describe("checkApiPermission — API 权限校验", () => {
 
   describe("认证成功但权限不足 — 返回 403", () => {
     it("VISITOR 访问需要 ADMIN 角色的 API 返回 403", async () => {
-      mockJwtVerify.mockResolvedValueOnce({
-        payload: { role: "VISITOR", sub: "user-1" },
-      });
+      mockDecode.mockResolvedValueOnce({ role: "VISITOR", sub: "user-1" });
 
       const req = createApiRequest("valid-visitor-token");
       const result = await checkApiPermission(req, "ADMIN");
@@ -259,9 +257,7 @@ describe("checkApiPermission — API 权限校验", () => {
     });
 
     it("ADMIN 访问需要 SUPERADMIN 角色的 API 返回 403", async () => {
-      mockJwtVerify.mockResolvedValueOnce({
-        payload: { role: "ADMIN", sub: "user-2" },
-      });
+      mockDecode.mockResolvedValueOnce({ role: "ADMIN", sub: "user-2" });
 
       const req = createApiRequest("valid-admin-token");
       const result = await checkApiPermission(req, "SUPERADMIN");
@@ -273,9 +269,7 @@ describe("checkApiPermission — API 权限校验", () => {
 
   describe("认证成功且权限充足 — 返回 null（放行）", () => {
     it("ADMIN 访问需要 ADMIN 角色的 API 放行", async () => {
-      mockJwtVerify.mockResolvedValueOnce({
-        payload: { role: "ADMIN", sub: "user-2" },
-      });
+      mockDecode.mockResolvedValueOnce({ role: "ADMIN", sub: "user-2" });
 
       const req = createApiRequest("valid-admin-token");
       const result = await checkApiPermission(req, "ADMIN");
@@ -284,9 +278,7 @@ describe("checkApiPermission — API 权限校验", () => {
     });
 
     it("SUPERADMIN 访问需要 ADMIN 角色的 API 放行（向下兼容）", async () => {
-      mockJwtVerify.mockResolvedValueOnce({
-        payload: { role: "SUPERADMIN", sub: "user-3" },
-      });
+      mockDecode.mockResolvedValueOnce({ role: "SUPERADMIN", sub: "user-3" });
 
       const req = createApiRequest("valid-superadmin-token");
       const result = await checkApiPermission(req, "ADMIN");
@@ -295,9 +287,7 @@ describe("checkApiPermission — API 权限校验", () => {
     });
 
     it("VISITOR 访问需要 VISITOR 角色的 API 放行", async () => {
-      mockJwtVerify.mockResolvedValueOnce({
-        payload: { role: "VISITOR", sub: "user-1" },
-      });
+      mockDecode.mockResolvedValueOnce({ role: "VISITOR", sub: "user-1" });
 
       const req = createApiRequest("valid-visitor-token");
       const result = await checkApiPermission(req, "VISITOR");
@@ -308,9 +298,7 @@ describe("checkApiPermission — API 权限校验", () => {
 
   describe("边界条件", () => {
     it("JWT payload 中无 role 字段时返回 403", async () => {
-      mockJwtVerify.mockResolvedValueOnce({
-        payload: { sub: "user-no-role" },
-      });
+      mockDecode.mockResolvedValueOnce({ sub: "user-no-role" });
 
       const req = createApiRequest("token-no-role");
       const result = await checkApiPermission(req, "VISITOR");
@@ -320,9 +308,7 @@ describe("checkApiPermission — API 权限校验", () => {
     });
 
     it("JWT payload 中 role 字段为无效值时返回 403", async () => {
-      mockJwtVerify.mockResolvedValueOnce({
-        payload: { role: "INVALID", sub: "user-bad-role" },
-      });
+      mockDecode.mockResolvedValueOnce({ role: "INVALID", sub: "user-bad-role" });
 
       const req = createApiRequest("token-bad-role");
       const result = await checkApiPermission(req, "VISITOR");

@@ -3,7 +3,7 @@
  * 从 @/lib/dashboard-stats 导入，通过依赖注入传入 mock jwtVerify
  */
 
-// ---- jsdom polyfill ----
+// ---- jsdom polyfills ----
 if (typeof TextEncoder === "undefined") {
   // @ts-expect-error — jsdom polyfill
   globalThis.TextEncoder = class TextEncoder {
@@ -13,6 +13,14 @@ if (typeof TextEncoder === "undefined") {
         buf[i] = str.charCodeAt(i);
       }
       return buf;
+    }
+  };
+}
+if (typeof TextDecoder === "undefined") {
+  // @ts-expect-error — jsdom polyfill
+  globalThis.TextDecoder = class TextDecoder {
+    decode(buf: Uint8Array): string {
+      return String.fromCharCode(...buf);
     }
   };
 }
@@ -58,7 +66,7 @@ function buildRequest(withCookie: boolean): Request {
 describe("GET /api/dashboard/stats", () => {
   it("已认证用户返回 200 + 统计数据 JSON", async () => {
     const mockVerify = jest.fn().mockResolvedValueOnce({
-      payload: { role: "ADMIN", sub: "u1" },
+      role: "ADMIN", sub: "u1",
     });
 
     const response = await handleGet(buildRequest(true), mockVerify);
@@ -76,7 +84,7 @@ describe("GET /api/dashboard/stats", () => {
 
   it("返回数据包含所有必需字段", async () => {
     const mockVerify = jest.fn().mockResolvedValueOnce({
-      payload: { role: "ADMIN", sub: "u1" },
+      role: "ADMIN", sub: "u1",
     });
 
     const response = await handleGet(buildRequest(true), mockVerify);
@@ -94,7 +102,7 @@ describe("GET /api/dashboard/stats", () => {
 
   it("每个统计值都是期望类型", async () => {
     const mockVerify = jest.fn().mockResolvedValueOnce({
-      payload: { role: "ADMIN", sub: "u1" },
+      role: "ADMIN", sub: "u1",
     });
 
     const response = await handleGet(buildRequest(true), mockVerify);

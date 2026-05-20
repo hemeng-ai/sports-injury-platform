@@ -13,11 +13,11 @@
  * - API 路由权限不足返回 403 JSON
  */
 
-// ---- mock jose/jwtVerify ----
-const mockJwtVerify = jest.fn();
+// ---- mock @auth/core/jwt decode ----
+const mockDecode = jest.fn();
 
-jest.mock("jose", () => ({
-  jwtVerify: (...args: unknown[]) => mockJwtVerify(...args),
+jest.mock("@auth/core/jwt", () => ({
+  decode: (...args: unknown[]) => mockDecode(...args),
 }));
 
 // ---- spy NextResponse 方法 ----
@@ -183,8 +183,8 @@ describe("路由守卫 — 未登录重定向", () => {
 // ===================================================================
 describe("路由守卫 — 已登录访问 /login 重定向", () => {
   it("已登录（带有效 token）访问 /login → 重定向到 /dashboard", async () => {
-    mockJwtVerify.mockResolvedValueOnce({
-      payload: { role: "VISITOR", sub: "user-1" },
+    mockDecode.mockResolvedValueOnce({
+      role: "VISITOR", sub: "user-1",
     });
 
     const req = createMockRequest({
@@ -199,8 +199,8 @@ describe("路由守卫 — 已登录访问 /login 重定向", () => {
   });
 
   it("已登录 ADMIN 访问 /login → 重定向到 /dashboard", async () => {
-    mockJwtVerify.mockResolvedValueOnce({
-      payload: { role: "ADMIN", sub: "user-2" },
+    mockDecode.mockResolvedValueOnce({
+      role: "ADMIN", sub: "user-2",
     });
 
     const req = createMockRequest({
@@ -221,8 +221,8 @@ describe("路由守卫 — 已登录访问 /login 重定向", () => {
 // ===================================================================
 describe("路由守卫 — 已登录放行", () => {
   it("已登录 VISITOR 访问 /dashboard → 放行", async () => {
-    mockJwtVerify.mockResolvedValueOnce({
-      payload: { role: "VISITOR", sub: "user-1" },
+    mockDecode.mockResolvedValueOnce({
+      role: "VISITOR", sub: "user-1",
     });
 
     const req = createMockRequest({
@@ -235,8 +235,8 @@ describe("路由守卫 — 已登录放行", () => {
   });
 
   it("已登录 VISITOR 访问 /files → 放行", async () => {
-    mockJwtVerify.mockResolvedValueOnce({
-      payload: { role: "VISITOR", sub: "user-1" },
+    mockDecode.mockResolvedValueOnce({
+      role: "VISITOR", sub: "user-1",
     });
 
     const req = createMockRequest({
@@ -255,8 +255,8 @@ describe("路由守卫 — 已登录放行", () => {
 describe("路由守卫 — 角色路由守卫", () => {
   describe("/users — 仅 SUPERADMIN 可访问", () => {
     it("VISITOR 访问 /users → 重定向（权限不足）", async () => {
-      mockJwtVerify.mockResolvedValueOnce({
-        payload: { role: "VISITOR", sub: "user-1" },
+      mockDecode.mockResolvedValueOnce({
+        role: "VISITOR", sub: "user-1",
       });
 
       const req = createMockRequest({
@@ -269,8 +269,8 @@ describe("路由守卫 — 角色路由守卫", () => {
     });
 
     it("ADMIN 访问 /users → 重定向（权限不足）", async () => {
-      mockJwtVerify.mockResolvedValueOnce({
-        payload: { role: "ADMIN", sub: "user-2" },
+      mockDecode.mockResolvedValueOnce({
+        role: "ADMIN", sub: "user-2",
       });
 
       const req = createMockRequest({
@@ -283,8 +283,8 @@ describe("路由守卫 — 角色路由守卫", () => {
     });
 
     it("SUPERADMIN 访问 /users → 放行", async () => {
-      mockJwtVerify.mockResolvedValueOnce({
-        payload: { role: "SUPERADMIN", sub: "user-3" },
+      mockDecode.mockResolvedValueOnce({
+        role: "SUPERADMIN", sub: "user-3",
       });
 
       const req = createMockRequest({
@@ -299,8 +299,8 @@ describe("路由守卫 — 角色路由守卫", () => {
 
   describe("/settings — 仅 ADMIN+ 可访问", () => {
     it("VISITOR 访问 /settings → 重定向（权限不足）", async () => {
-      mockJwtVerify.mockResolvedValueOnce({
-        payload: { role: "VISITOR", sub: "user-1" },
+      mockDecode.mockResolvedValueOnce({
+        role: "VISITOR", sub: "user-1",
       });
 
       const req = createMockRequest({
@@ -313,8 +313,8 @@ describe("路由守卫 — 角色路由守卫", () => {
     });
 
     it("ADMIN 访问 /settings → 放行", async () => {
-      mockJwtVerify.mockResolvedValueOnce({
-        payload: { role: "ADMIN", sub: "user-2" },
+      mockDecode.mockResolvedValueOnce({
+        role: "ADMIN", sub: "user-2",
       });
 
       const req = createMockRequest({
@@ -327,8 +327,8 @@ describe("路由守卫 — 角色路由守卫", () => {
     });
 
     it("SUPERADMIN 访问 /settings → 放行", async () => {
-      mockJwtVerify.mockResolvedValueOnce({
-        payload: { role: "SUPERADMIN", sub: "user-3" },
+      mockDecode.mockResolvedValueOnce({
+        role: "SUPERADMIN", sub: "user-3",
       });
 
       const req = createMockRequest({
@@ -358,8 +358,8 @@ describe("路由守卫 — API 路由保护", () => {
   });
 
   it("已登录 VISITOR 访问 /api/protected/data → 放行（无角色限制的通用 API）", async () => {
-    mockJwtVerify.mockResolvedValueOnce({
-      payload: { role: "VISITOR", sub: "user-1" },
+    mockDecode.mockResolvedValueOnce({
+      role: "VISITOR", sub: "user-1",
     });
 
     const req = createMockRequest({
@@ -372,8 +372,8 @@ describe("路由守卫 — API 路由保护", () => {
   });
 
   it("VISITOR 访问 /api/admin/users → 返回 403 JSON（角色不足）", async () => {
-    mockJwtVerify.mockResolvedValueOnce({
-      payload: { role: "VISITOR", sub: "user-1" },
+    mockDecode.mockResolvedValueOnce({
+      role: "VISITOR", sub: "user-1",
     });
 
     const req = createMockRequest({
@@ -389,8 +389,8 @@ describe("路由守卫 — API 路由保护", () => {
   });
 
   it("ADMIN 访问 /api/admin/users → 放行", async () => {
-    mockJwtVerify.mockResolvedValueOnce({
-      payload: { role: "ADMIN", sub: "user-2" },
+    mockDecode.mockResolvedValueOnce({
+      role: "ADMIN", sub: "user-2",
     });
 
     const req = createMockRequest({
@@ -408,7 +408,7 @@ describe("路由守卫 — API 路由保护", () => {
 // ===================================================================
 describe("路由守卫 — 边界条件", () => {
   it("cookie 中 token 存在但 JWT 验证失败 → 重定向到 /login", async () => {
-    mockJwtVerify.mockRejectedValueOnce(new Error("invalid signature"));
+    mockDecode.mockRejectedValueOnce(new Error("invalid signature"));
 
     const req = createMockRequest({
       pathname: "/dashboard",
@@ -420,8 +420,8 @@ describe("路由守卫 — 边界条件", () => {
   });
 
   it("同时存在 authjs.session-token 和 __Secure-authjs.session-token，优先使用前者", async () => {
-    mockJwtVerify.mockResolvedValueOnce({
-      payload: { role: "ADMIN", sub: "user-2" },
+    mockDecode.mockResolvedValueOnce({
+      role: "ADMIN", sub: "user-2",
     });
 
     const req = createMockRequest({
@@ -433,15 +433,16 @@ describe("路由守卫 — 边界条件", () => {
     });
 
     await middleware(req);
-    expect(mockJwtVerify).toHaveBeenCalledWith(
-      "primary-valid-token",
-      expect.anything(),
-    );
+    expect(mockDecode).toHaveBeenCalledWith({
+      token: "primary-valid-token",
+      secret: expect.any(String),
+      salt: expect.any(String),
+    });
   });
 
   it("仅 __Secure- 前缀 cookie 存在时也可正常验证", async () => {
-    mockJwtVerify.mockResolvedValueOnce({
-      payload: { role: "VISITOR", sub: "user-1" },
+    mockDecode.mockResolvedValueOnce({
+      role: "VISITOR", sub: "user-1",
     });
 
     const req = createMockRequest({
