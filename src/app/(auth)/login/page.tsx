@@ -97,8 +97,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen px-4">
-      <Card className="w-full max-w-md p-8 space-y-6">
+    <Card className="w-full max-w-md p-8 space-y-6 mx-4">
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-bold">运动损伤资料平台</h1>
           <p className="text-muted-foreground text-sm">资料管理与指标分析系统</p>
@@ -180,6 +179,5 @@ export default function LoginPage() {
           </TabsContent>
         </Tabs>
       </Card>
-    </div>
   );
 }

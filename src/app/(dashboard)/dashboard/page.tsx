@@ -30,8 +30,16 @@ interface Activity {
   type: string;
   description: string;
   user: string;
+  role?: string;
   time: string;
 }
+
+/** 角色对应头像背景色 */
+const ROLE_AVATAR_COLORS: Record<string, string> = {
+  SUPERADMIN: "bg-destructive/10 text-destructive",
+  ADMIN: "bg-primary/10 text-primary",
+  VISITOR: "bg-muted text-muted-foreground",
+};
 
 /** 数字滚动动画 hook */
 function useCountUp(target: number, duration = 800) {
@@ -102,10 +110,10 @@ const CARD_CONFIGS: {
   trendKey: keyof DashboardStats;
   sparklineColor: string;
 }[] = [
-  { key: "totalFiles", title: "文件总数", icon: FileText, trendKey: "fileTrend", sparklineColor: "#06B6D4" },
-  { key: "totalIndicators", title: "指标总数", icon: BarChart3, trendKey: "indicatorTrend", sparklineColor: "#E6A817" },
-  { key: "recentUploads", title: "最近上传", icon: Upload, trendKey: "uploadTrend", sparklineColor: "#22D3EE" },
-  { key: "totalUsers", title: "用户数", icon: Users, trendKey: "userTrend", sparklineColor: "#67E8F9" },
+  { key: "totalFiles", title: "文件总数", icon: FileText, trendKey: "fileTrend", sparklineColor: "#0EA5E9" },
+  { key: "totalIndicators", title: "指标总数", icon: BarChart3, trendKey: "indicatorTrend", sparklineColor: "#F59E0B" },
+  { key: "recentUploads", title: "最近上传", icon: Upload, trendKey: "uploadTrend", sparklineColor: "#06B6D4" },
+  { key: "totalUsers", title: "用户数", icon: Users, trendKey: "userTrend", sparklineColor: "#38BDF8" },
 ];
 
 /** 引导卡片配置 */
@@ -168,8 +176,8 @@ export default function DashboardPage() {
   // 加载中
   if (loading) {
     return (
-      <div className="p-6 space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="space-y-6">
+        <div className="grid grid-cols-4 gap-4">
           {CARD_CONFIGS.map((c) => (
             <StatCardSkeleton key={c.key} />
           ))}
@@ -180,9 +188,7 @@ export default function DashboardPage() {
 
   if (!stats) {
     return (
-      <div className="p-6">
-        <p className="text-muted-foreground">暂无数据</p>
-      </div>
+      <p className="text-muted-foreground">暂无数据</p>
     );
   }
 
@@ -193,11 +199,11 @@ export default function DashboardPage() {
     stats.totalUsers === 0;
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="space-y-6">
       <PasswordReminder />
 
       {/* ==================== 统计卡片 ==================== */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-4 gap-4">
         {CARD_CONFIGS.map((config) => (
           <StatCard key={config.key} config={config} stats={stats} />
         ))}
@@ -206,13 +212,13 @@ export default function DashboardPage() {
       {/* ==================== 引导区（全部为 0 时显示） ==================== */}
       {allZero && (
         <div>
-          <h2 className="text-lg font-semibold mb-4">快速开始</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <h2 className="text-lg font-semibold mt-4 mb-4">快速开始</h2>
+          <div className="grid grid-cols-3 gap-4">
             {GUIDE_CARDS.map((card) => {
               const Icon = card.icon;
               return (
-                <Card key={card.href} className="hover:border-primary/30 group cursor-pointer" onClick={() => router.push(card.href)}>
-                  <CardContent className="p-6 flex flex-col items-center text-center gap-3">
+                <Card key={card.href} className="hover:border-primary/30 hover:-translate-y-1 transition-all duration-300 group cursor-pointer" onClick={() => router.push(card.href)}>
+                  <CardContent className="p-5 flex flex-col items-center text-center gap-3">
                     <div className="p-3 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
                       <Icon className="h-6 w-6 text-primary" />
                     </div>
@@ -233,7 +239,7 @@ export default function DashboardPage() {
 
       {/* ==================== 最近活动 ==================== */}
       <div>
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+        <h2 className="text-lg font-semibold mt-4 mb-4 flex items-center gap-2">
           <Clock className="h-5 w-5 text-muted-foreground" />
           最近活动
         </h2>
@@ -243,7 +249,7 @@ export default function DashboardPage() {
               <div className="divide-y divide-border">
                 {activities.map((act, i) => (
                   <div key={act.id} className="flex items-center gap-4 px-5 py-3">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${ROLE_AVATAR_COLORS[act.role || ""] || ROLE_AVATAR_COLORS.VISITOR}`}>
                       <ActivityIcon type={act.type} />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -297,7 +303,7 @@ function StatCard({
               <Icon className="h-4 w-4 text-muted-foreground" />
               <span className="text-xs text-muted-foreground font-medium">{config.title}</span>
             </div>
-            <div className="stat-number text-[2rem] font-bold leading-tight tracking-tight">
+            <div className="stat-number text-3xl font-bold leading-tight tracking-tight">
               {animatedValue}
             </div>
             <p className="text-xs text-muted-foreground mt-1">{trend}</p>

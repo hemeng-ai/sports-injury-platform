@@ -16,6 +16,7 @@ import {
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line, BarChart, Bar, Legend, ZAxis,
 } from "recharts";
+import { BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 
 interface Indicator {
@@ -131,8 +132,8 @@ export default function AnalysisPage() {
         </TabsList>
 
         {/* 描述统计 */}
-        <TabsContent value="descriptive" className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card>
+        <TabsContent value="descriptive" className="mt-4 grid grid-cols-5 gap-6">
+          <Card className="col-span-2">
             <CardHeader><CardTitle className="text-lg">数据输入</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               <div>
@@ -149,7 +150,7 @@ export default function AnalysisPage() {
             </CardContent>
           </Card>
 
-          <Card className="lg:col-span-2">
+          <Card className="col-span-3">
             <CardHeader><CardTitle className="text-lg">统计结果</CardTitle></CardHeader>
             <CardContent>
               {descriptiveResult ? (
@@ -185,7 +186,7 @@ export default function AnalysisPage() {
           </Card>
 
           {/* 柱状图 — 带空状态 */}
-          <Card className="lg:col-span-3">
+          <Card className="col-span-5">
             <CardHeader><CardTitle className="text-lg">数据分布</CardTitle></CardHeader>
             <CardContent>
               {descriptiveResult ? (
@@ -209,8 +210,8 @@ export default function AnalysisPage() {
         </TabsContent>
 
         {/* 相关性分析 */}
-        <TabsContent value="correlation" className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card>
+        <TabsContent value="correlation" className="mt-4 grid grid-cols-5 gap-6">
+          <Card className="col-span-2">
             <CardHeader><CardTitle className="text-lg">数据输入</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               <div>
@@ -235,7 +236,7 @@ export default function AnalysisPage() {
             </CardContent>
           </Card>
 
-          <Card className="lg:col-span-2">
+          <Card className="col-span-3">
             <CardHeader><CardTitle className="text-lg">相关性结果</CardTitle></CardHeader>
             <CardContent>
               {correlationResult ? (
@@ -266,7 +267,7 @@ export default function AnalysisPage() {
 
           {/* 散点图 */}
           {correlationResult && (
-            <Card className="lg:col-span-3">
+            <Card className="col-span-5">
               <CardHeader><CardTitle className="text-lg">散点图</CardTitle></CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={350}>
@@ -287,8 +288,8 @@ export default function AnalysisPage() {
         </TabsContent>
 
         {/* 趋势分析 */}
-        <TabsContent value="trend" className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card>
+        <TabsContent value="trend" className="mt-4 grid grid-cols-5 gap-6">
+          <Card className="col-span-2">
             <CardHeader><CardTitle className="text-lg">数据输入</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               <div>
@@ -305,7 +306,7 @@ export default function AnalysisPage() {
             </CardContent>
           </Card>
 
-          <Card className="lg:col-span-2">
+          <Card className="col-span-3">
             <CardHeader><CardTitle className="text-lg">趋势结果</CardTitle></CardHeader>
             <CardContent>
               {trendResult ? (
@@ -333,7 +334,7 @@ export default function AnalysisPage() {
 
           {/* 趋势折线图 */}
           {trendResult && (
-            <Card className="lg:col-span-3">
+            <Card className="col-span-5">
               <CardHeader><CardTitle className="text-lg">趋势折线图</CardTitle></CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={350}>

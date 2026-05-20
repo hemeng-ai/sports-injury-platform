@@ -11,6 +11,24 @@ function Select({
   return <SelectPrimitive.Root data-slot="select" {...props} />;
 }
 
+function SelectValue({
+  className,
+  children,
+  placeholder,
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.Value>) {
+  return (
+    <SelectPrimitive.Value
+      data-slot="select-value"
+      className={cn("flex items-center gap-2", className)}
+      placeholder={placeholder}
+      {...props}
+    >
+      {children}
+    </SelectPrimitive.Value>
+  );
+}
+
 function SelectTrigger({
   className,
   children,
@@ -130,6 +148,7 @@ function SelectScrollDownButton({
 
 export {
   Select,
+  SelectValue,
   SelectTrigger,
   SelectContent,
   SelectItem,

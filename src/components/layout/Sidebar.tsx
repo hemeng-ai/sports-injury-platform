@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Activity,
   FolderOpen,
   Folder,
   FileText,
@@ -16,11 +17,9 @@ import {
   Settings,
   ChevronRight,
   X,
-  User,
 } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import ThemeToggle from "./ThemeToggle";
 
 /** 节点定义 */
 interface NavNode {
@@ -34,10 +33,10 @@ interface NavNode {
 
 /** 侧边栏 Props */
 interface SidebarProps {
-  userName?: string;
   userRole?: string;
   isOpen?: boolean;
   onClose?: () => void;
+  className?: string;
 }
 
 /** 角色层级：数值越大权限越高 */
@@ -67,7 +66,7 @@ const NAV_NODES: NavNode[] = [
 /** localStorage 键名 */
 const STORAGE_KEY = "sidebar-expanded";
 
-export default function Sidebar({ userName, userRole, isOpen, onClose }: SidebarProps) {
+export default function Sidebar({ userRole, isOpen, onClose, className }: SidebarProps) {
   const pathname = usePathname();
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => {
     // 初始化：从 localStorage 读取
@@ -104,6 +103,12 @@ export default function Sidebar({ userName, userRole, isOpen, onClose }: Sidebar
 
   const sidebarContent = (
     <aside className="flex flex-col h-full bg-sidebar border-r border-sidebar-border">
+      {/* 品牌头部 */}
+      <div className="flex items-center gap-2 p-4 border-b border-sidebar-border">
+        <Activity className="h-6 w-6 text-primary flex-shrink-0" />
+        <span className="font-bold text-sm text-sidebar-foreground truncate">运动损伤资料平台</span>
+      </div>
+
       {/* 移动端标题栏 */}
       <div className="flex items-center justify-between p-4 border-b border-sidebar-border lg:hidden">
         <span className="font-semibold text-sm text-sidebar-foreground">导航菜单</span>
@@ -142,31 +147,10 @@ export default function Sidebar({ userName, userRole, isOpen, onClose }: Sidebar
         </ul>
       </nav>
 
-      {/* 底部用户信息区 */}
-      {userName && (
-        <div className="border-t border-sidebar-border p-3">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-8 w-8">
-              <AvatarFallback className="text-xs bg-sidebar-accent text-sidebar-foreground">
-                {userName.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sidebar-foreground truncate">
-                {userName}
-              </p>
-              {userRole && (
-                <Badge
-                  variant="outline"
-                  className="text-[10px] px-1.5 py-0 border-warning/40 text-warning mt-0.5"
-                >
-                  {userRole === "SUPERADMIN" ? "超级管理员" : userRole === "ADMIN" ? "管理员" : "游客"}
-                </Badge>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 底部：主题切换 */}
+      <div className="p-2 border-t border-sidebar-border">
+        <ThemeToggle className="w-full justify-start gap-3 px-3" showLabel />
+      </div>
     </aside>
   );
 
@@ -174,7 +158,7 @@ export default function Sidebar({ userName, userRole, isOpen, onClose }: Sidebar
   return (
     <>
       {/* 桌面端：始终显示 */}
-      <div className="hidden lg:block w-56 flex-shrink-0">{sidebarContent}</div>
+      <div className={cn("hidden lg:block w-56 flex-shrink-0", className)}>{sidebarContent}</div>
 
       {/* 移动端：Sheet overlay */}
       {isOpen && (

@@ -1,6 +1,6 @@
 /**
- * Dashboard 布局 — /dashboard/*
- * 对所有已认证页面提供 Navbar + Sidebar + Breadcrumb + 内容区
+ * (dashboard) 路由组布局 — 所有功能页共享
+ * 左侧 Sidebar + 右侧内容区（面包屑 + 滚动内容）
  */
 import DashboardShell from "@/components/layout/DashboardShell";
 

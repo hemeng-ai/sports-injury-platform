@@ -11,8 +11,12 @@ import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Users, Shield, Clock, FileText, Upload, Trash2, UserPlus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Users, Shield, Clock, FileText, Upload, Trash2, UserPlus, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 
 interface UserRecord {
   id: string;
@@ -82,10 +86,16 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">用户管理</h1>
-        <p className="text-sm text-muted-foreground mt-1">管理用户账户与查看操作日志</p>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">用户管理</h1>
+          <p className="text-sm text-muted-foreground mt-1">管理用户账户与查看操作日志</p>
+        </div>
+        <Button>
+          <UserPlus className="h-4 w-4 mr-2" />
+          新建用户
+        </Button>
       </div>
 
       <Tabs defaultValue="users">
@@ -120,6 +130,8 @@ export default function UsersPage() {
 function UserListTab() {
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
 
   useEffect(() => {
     fetch("/api/users")
@@ -128,6 +140,12 @@ function UserListTab() {
       .catch(() => toast.error("加载用户列表失败"))
       .finally(() => setLoading(false));
   }, []);
+
+  const filteredUsers = users.filter((u) => {
+    const matchSearch = !search || u.username.toLowerCase().includes(search.toLowerCase());
+    const matchRole = roleFilter === "all" || u.role === roleFilter;
+    return matchSearch && matchRole;
+  });
 
   if (loading) {
     return (
@@ -146,6 +164,30 @@ function UserListTab() {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {/* 搜索筛选栏 */}
+        <div className="flex gap-3 mb-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="搜索用户名..."
+              className="pl-9"
+            />
+          </div>
+          <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="全部角色" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">全部角色</SelectItem>
+              <SelectItem value="SUPERADMIN">超级管理员</SelectItem>
+              <SelectItem value="ADMIN">管理员</SelectItem>
+              <SelectItem value="VISITOR">游客</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <Table>
           <TableHeader>
             <TableRow>
@@ -155,7 +197,7 @@ function UserListTab() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.map((u) => (
+            {filteredUsers.map((u) => (
               <TableRow key={u.id}>
                 <TableCell className="font-medium">{u.username}</TableCell>
                 <TableCell>

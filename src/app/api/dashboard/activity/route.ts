@@ -15,7 +15,7 @@ export async function GET(): Promise<Response> {
         id: true,
         originalName: true,
         createdAt: true,
-        uploader: { select: { username: true } },
+        uploader: { select: { username: true, role: true } },
       },
     });
 
@@ -27,7 +27,7 @@ export async function GET(): Promise<Response> {
         id: true,
         type: true,
         createdAt: true,
-        user: { select: { username: true } },
+        user: { select: { username: true, role: true } },
       },
     });
 
@@ -49,6 +49,7 @@ export async function GET(): Promise<Response> {
       type: string;
       description: string;
       user: string;
+      role?: string;
       time: string;
     }> = [];
 
@@ -58,6 +59,7 @@ export async function GET(): Promise<Response> {
         type: "upload",
         description: `上传了文件「${f.originalName}」`,
         user: f.uploader?.username || "未知",
+        role: (f.uploader as { role?: string } | null)?.role || "VISITOR",
         time: f.createdAt.toISOString(),
       });
     }
@@ -70,6 +72,7 @@ export async function GET(): Promise<Response> {
         type: "analysis",
         description: `完成了${typeLabel}`,
         user: a.user?.username || "未知",
+        role: (a.user as { role?: string } | null)?.role || "VISITOR",
         time: a.createdAt.toISOString(),
       });
     }
@@ -80,6 +83,7 @@ export async function GET(): Promise<Response> {
         type: "user",
         description: `新用户「${u.username}」注册`,
         user: u.username,
+        role: u.role,
         time: u.createdAt.toISOString(),
       });
     }

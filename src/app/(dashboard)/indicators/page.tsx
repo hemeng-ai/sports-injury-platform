@@ -13,12 +13,12 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Upload, Search, Plus, Pencil, Trash2, FileSpreadsheet, ChevronLeft, ChevronRight, Download,
+  Upload, Search, Plus, Pencil, Trash2, FileSpreadsheet, ChevronLeft, ChevronRight, Download, FileText,
 } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
@@ -258,7 +258,7 @@ export default function IndicatorsPage() {
             </div>
             <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v); setPage(1); }}>
               <SelectTrigger className="w-[160px]">
-                <span>全部分类</span>
+                <SelectValue placeholder="全部分类" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">全部分类</SelectItem>
@@ -271,9 +271,21 @@ export default function IndicatorsPage() {
 
           {/* 指标表格 */}
           {loading ? (
-            <p className="text-center py-8 text-muted-foreground">加载中...</p>
+            <div className="border-2 border-dashed border-border rounded-xl py-16 flex flex-col items-center justify-center text-muted-foreground">
+              <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mb-3" />
+              <p className="text-sm">加载中...</p>
+            </div>
           ) : indicators.length === 0 ? (
-            <p className="text-center py-8 text-muted-foreground">暂无指标</p>
+            <div className="border-2 border-dashed border-border rounded-xl py-16 flex flex-col items-center justify-center text-muted-foreground">
+              <FileText className="h-12 w-12 mb-4 opacity-30" />
+              <p className="text-sm font-medium mb-1">暂无指标数据</p>
+              <p className="text-xs mb-4">创建您的第一个评估指标，或通过 Excel 批量导入</p>
+              {canEdit && (
+                <Button onClick={() => { setEditItem(null); setDialogOpen(true); }}>
+                  <Plus className="h-4 w-4 mr-2" />新建指标
+                </Button>
+              )}
+            </div>
           ) : (
             <Table>
               <TableHeader>
@@ -458,7 +470,7 @@ function IndicatorDialog({
           <div>
             <Label>分类 *</Label>
             <Select value={form.categoryId} onValueChange={(v) => setForm({ ...form, categoryId: v })}>
-              <SelectTrigger><span>选择分类</span></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="选择分类" /></SelectTrigger>
               <SelectContent>
                 {categories.map((c) => (
                   <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>

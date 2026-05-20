@@ -12,6 +12,9 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "50mb",
     },
+    // 减少并发编译压力，避免 worker 崩溃
+    workerThreads: false,
+    cpus: 1,
   },
 };
 

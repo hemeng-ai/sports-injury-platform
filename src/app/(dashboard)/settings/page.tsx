@@ -90,14 +90,16 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 max-w-2xl mx-auto">
       <div>
         <h1 className="text-2xl font-bold">个人设置</h1>
         <p className="text-sm text-muted-foreground mt-1">查看个人信息与修改密码</p>
       </div>
 
-      {/* 用户信息卡片 */}
-      <Card>
+      {/* 基本信息 + 修改密码 并排 */}
+      <div className="grid grid-cols-2 gap-6">
+        {/* 用户信息卡片 */}
+        <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <User className="h-5 w-5" />
@@ -239,6 +241,7 @@ export default function SettingsPage() {
           </Button>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
