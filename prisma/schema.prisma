@@ -22,6 +22,7 @@ model User {
   updatedAt         DateTime  @updatedAt
   files             File[]
   analyses          AnalysisRecord[]
+  auditLogs         AuditLog[]
 }
 
 enum Role {
@@ -130,4 +131,17 @@ enum AnalysisType {
   DESCRIPTIVE   // 描述统计
   CORRELATION   // 相关性分析
   TREND         // 趋势分析
+}
+
+// ==================== 操作审计日志 ====================
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  action    String   // UPLOAD / DELETE / MODIFY / CREATE / LOGIN / EXPORT
+  target    String   // 操作对象类型：FILE / INDICATOR / USER / SYSTEM
+  targetId  String?  // 操作对象 ID
+  detail    String?  // 操作详情
+  createdAt DateTime @default(now())
 }

@@ -18,9 +18,10 @@ import {
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Upload, Search, Plus, Pencil, Trash2, FileSpreadsheet, ChevronLeft, ChevronRight,
+  Upload, Search, Plus, Pencil, Trash2, FileSpreadsheet, ChevronLeft, ChevronRight, Download,
 } from "lucide-react";
 import { toast } from "sonner";
+import * as XLSX from "xlsx";
 
 interface Indicator {
   id: string;
@@ -160,6 +161,42 @@ export default function IndicatorsPage() {
     }
   };
 
+  // 导出 Excel
+  const handleExportExcel = async () => {
+    try {
+      toast.info("正在导出...");
+      // 获取全部指标数据（不分页）
+      const res = await fetch("/api/indicators?limit=999");
+      const data = await res.json();
+      const allIndicators: Indicator[] = data.indicators || [];
+
+      const exportData = allIndicators.map((ind) => ({
+        "指标名称": ind.name,
+        "分类": ind.category?.name || "—",
+        "单位": ind.unit || "",
+        "正常范围": ind.normalRange || "",
+        "风险阈值": ind.riskThreshold || "",
+        "测试方法": ind.testMethod || "",
+        "数据来源": ind.dataSource || "",
+        "描述": ind.description || "",
+        "创建时间": new Date(ind.createdAt).toLocaleDateString("zh-CN"),
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(exportData);
+      // 设置列宽
+      ws["!cols"] = [
+        { wch: 20 }, { wch: 12 }, { wch: 8 }, { wch: 12 },
+        { wch: 12 }, { wch: 15 }, { wch: 15 }, { wch: 30 }, { wch: 12 },
+      ];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "指标体系");
+      XLSX.writeFile(wb, `指标体系_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      toast.success("导出成功");
+    } catch {
+      toast.error("导出失败");
+    }
+  };
+
   // 删除指标
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`确定删除指标 "${name}"？`)) return;
@@ -186,6 +223,9 @@ export default function IndicatorsPage() {
             {excelUploading ? "解析中..." : "导入 Excel"}
             <input type="file" accept=".xls,.xlsx" className="hidden" onChange={handleExcelUpload} disabled={excelUploading} />
           </label>
+          <Button variant="outline" onClick={handleExportExcel}>
+            <Download className="h-4 w-4 mr-2" />导出 Excel
+          </Button>
           {canEdit && (
             <Button onClick={() => { setEditItem(null); setDialogOpen(true); }}>
               <Plus className="h-4 w-4 mr-2" />新建指标

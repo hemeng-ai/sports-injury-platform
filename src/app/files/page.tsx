@@ -39,9 +39,35 @@ function FilesPageContent() {
   const [showUpload, setShowUpload] = useState(false);
   const [currentFolderId, setCurrentFolderId] = useState(folderFromUrl || "");
   const [treeOpen, setTreeOpen] = useState(true);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const userRole = session?.user?.role as string | undefined;
   const canUpload = userRole === "ADMIN" || userRole === "SUPERADMIN";
+
+  const handleBatchDelete = async (ids: string[]) => {
+    let successCount = 0;
+    for (const id of ids) {
+      try {
+        const res = await fetch(`/api/files/${id}`, { method: "DELETE" });
+        if (res.ok) successCount++;
+      } catch { /* continue */ }
+    }
+    if (successCount > 0) {
+      toast.success(`成功删除 ${successCount} 个文件`);
+    }
+    fetchFiles();
+  };
+
+  const handleBatchDownload = (ids: string[]) => {
+    const targetFiles = files.filter((f) => ids.includes(f.id));
+    for (const file of targetFiles) {
+      const a = document.createElement("a");
+      a.href = file.path;
+      a.download = file.originalName;
+      a.click();
+    }
+    toast.success(`开始下载 ${targetFiles.length} 个文件`);
+  };
 
   const fetchFiles = useCallback(async () => {
     setLoading(true);
@@ -147,6 +173,10 @@ function FilesPageContent() {
             loading={loading}
             userRole={userRole}
             onDelete={handleDelete}
+            selectedIds={selectedIds}
+            onSelectionChange={setSelectedIds}
+            onBatchDelete={handleBatchDelete}
+            onBatchDownload={handleBatchDownload}
           />
 
           {/* 分页 */}

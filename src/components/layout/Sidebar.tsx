@@ -16,7 +16,10 @@ import {
   Settings,
   ChevronRight,
   X,
+  User,
 } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 /** 节点定义 */
@@ -31,6 +34,7 @@ interface NavNode {
 
 /** 侧边栏 Props */
 interface SidebarProps {
+  userName?: string;
   userRole?: string;
   isOpen?: boolean;
   onClose?: () => void;
@@ -63,7 +67,7 @@ const NAV_NODES: NavNode[] = [
 /** localStorage 键名 */
 const STORAGE_KEY = "sidebar-expanded";
 
-export default function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
+export default function Sidebar({ userName, userRole, isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => {
     // 初始化：从 localStorage 读取
@@ -99,13 +103,13 @@ export default function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
   }, [onClose]);
 
   const sidebarContent = (
-    <aside className="flex flex-col h-full bg-card border-r border-border">
+    <aside className="flex flex-col h-full bg-sidebar border-r border-sidebar-border">
       {/* 移动端标题栏 */}
-      <div className="flex items-center justify-between p-4 border-b border-border lg:hidden">
-        <span className="font-semibold text-sm text-foreground">导航菜单</span>
+      <div className="flex items-center justify-between p-4 border-b border-sidebar-border lg:hidden">
+        <span className="font-semibold text-sm text-sidebar-foreground">导航菜单</span>
         <button
           onClick={onClose}
-          className="p-1 rounded-md hover:bg-accent text-muted-foreground"
+          className="p-1 rounded-md hover:bg-sidebar-accent text-sidebar-foreground"
           aria-label="关闭侧边栏"
         >
           <X className="h-5 w-5" />
@@ -137,6 +141,32 @@ export default function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
           ))}
         </ul>
       </nav>
+
+      {/* 底部用户信息区 */}
+      {userName && (
+        <div className="border-t border-sidebar-border p-3">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-8 w-8">
+              <AvatarFallback className="text-xs bg-sidebar-accent text-sidebar-foreground">
+                {userName.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-sidebar-foreground truncate">
+                {userName}
+              </p>
+              {userRole && (
+                <Badge
+                  variant="outline"
+                  className="text-[10px] px-1.5 py-0 border-warning/40 text-warning mt-0.5"
+                >
+                  {userRole === "SUPERADMIN" ? "超级管理员" : userRole === "ADMIN" ? "管理员" : "游客"}
+                </Badge>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </aside>
   );
 
@@ -189,9 +219,10 @@ function TreeNodeItem({
         href={node.href}
         onClick={onNavigate}
         className={cn(
-          "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+          "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all duration-150 ease-out",
+          "border-l-[3px] border-l-transparent",
           isActive
-            ? "bg-primary/10 text-primary font-medium"
+            ? "bg-primary/10 text-primary font-medium border-l-primary"
             : "text-muted-foreground hover:bg-accent hover:text-foreground"
         )}
       >

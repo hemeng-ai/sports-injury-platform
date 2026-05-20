@@ -153,13 +153,24 @@ export default function AnalysisPage() {
             <CardHeader><CardTitle className="text-lg">统计结果</CardTitle></CardHeader>
             <CardContent>
               {descriptiveResult ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {(["count", "mean", "max", "min", "stdev", "sum"] as const).map((key) => (
-                    <div key={key} className="bg-muted/50 rounded-lg p-4 text-center">
-                      <p className="text-xs text-muted-foreground mb-1">
-                        {key === "count" ? "样本数" : key === "mean" ? "平均值" : key === "max" ? "最大值" : key === "min" ? "最小值" : key === "stdev" ? "标准差" : "合计"}
-                      </p>
-                      <p className="text-xl font-bold">
+                <div className="grid grid-cols-2 gap-3">
+                  {([
+                    { key: "mean", label: "平均值", size: "large" },
+                    { key: "max", label: "最大值", size: "small" },
+                    { key: "min", label: "最小值", size: "small" },
+                    { key: "stdev", label: "标准差", size: "small" },
+                    { key: "count", label: "样本数", size: "small" },
+                  ] as const).map(({ key, label, size }) => (
+                    <div
+                      key={key}
+                      className={`bg-muted/30 rounded-lg p-4 text-center ${
+                        size === "large" ? "col-span-2" : ""
+                      }`}
+                    >
+                      <p className="text-xs text-muted-foreground mb-1">{label}</p>
+                      <p className={`font-bold mono-value ${
+                        size === "large" ? "text-2xl" : "text-lg"
+                      }`}>
                         {typeof descriptiveResult[key] === "number"
                           ? (descriptiveResult[key] as number).toFixed(2)
                           : String(descriptiveResult[key])}
@@ -173,23 +184,28 @@ export default function AnalysisPage() {
             </CardContent>
           </Card>
 
-          {/* 柱状图 */}
-          {descriptiveResult && (
-            <Card className="lg:col-span-3">
-              <CardHeader><CardTitle className="text-lg">数据分布</CardTitle></CardHeader>
-              <CardContent>
+          {/* 柱状图 — 带空状态 */}
+          <Card className="lg:col-span-3">
+            <CardHeader><CardTitle className="text-lg">数据分布</CardTitle></CardHeader>
+            <CardContent>
+              {descriptiveResult ? (
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={(descriptiveResult.values as number[]).map((v, i) => ({ index: i + 1, value: v }))}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="index" label={{ value: "序号", position: "bottom" }} />
                     <YAxis />
                     <Tooltip />
-                    <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="value" fill="#06B6D4" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          )}
+              ) : (
+                <div className="border-2 border-dashed border-border rounded-lg py-16 flex flex-col items-center justify-center text-muted-foreground">
+                  <BarChart3 className="h-10 w-10 mb-3 opacity-30" />
+                  <p className="text-sm">请先在左侧选择指标类别和时间范围</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* 相关性分析 */}

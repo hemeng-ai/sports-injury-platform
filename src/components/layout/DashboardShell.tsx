@@ -16,7 +16,9 @@ import Breadcrumb from "@/components/layout/Breadcrumb";
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { data: session } = useSession();
-  const userRole = (session?.user as { role?: string } | undefined)?.role;
+  const user = session?.user as { name?: string; role?: string } | undefined;
+  const userRole = user?.role;
+  const userName = user?.name;
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -25,7 +27,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
       <div className="flex flex-1 overflow-hidden">
         {/* 桌面端侧边栏（始终渲染，通过 CSS 控制显隐） */}
-        <Sidebar userRole={userRole} />
+        <Sidebar userName={userName} userRole={userRole} />
 
         {/* 主内容区 */}
         <main className="flex-1 flex flex-col overflow-y-auto">
@@ -51,6 +53,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
       {/* 移动端：Sheet overlay 侧边栏 */}
       <Sidebar
+        userName={userName}
         userRole={userRole}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}

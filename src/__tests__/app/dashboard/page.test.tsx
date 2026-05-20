@@ -13,6 +13,13 @@ import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 
 // ---- mock 依赖 ----
+// mock ResizeObserver（JSDOM 不支持，Recharts ResponsiveContainer 需要）
+global.ResizeObserver = jest.fn().mockImplementation(() => ({
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+  disconnect: jest.fn(),
+}));
+
 // mock localStorage
 Object.defineProperty(window, "localStorage", {
   value: { getItem: jest.fn(() => null), setItem: jest.fn(), removeItem: jest.fn() },
