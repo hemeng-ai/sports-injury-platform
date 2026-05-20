@@ -36,7 +36,7 @@ export async function checkApiPermission(
     });
   }
 
-  const userRole = session.role;
+  const userRole = session.role as string | undefined;
   if (!userRole || !canAccess(userRole, minRole)) {
     return new Response(JSON.stringify({ error: "权限不足，无法访问此资源" }), {
       status: 403,

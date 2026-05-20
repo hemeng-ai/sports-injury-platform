@@ -1,39 +1,98 @@
 # fix-proxy-bypass.ps1
-# 确保 Windows 代理绕行列表包含 IPv6 localhost (::1) 和 <local> 令牌
-# 解决 Clash/代理软件开启后本地开发站点无法访问的问题
+# Add campus network IPs and localhost to Windows proxy bypass list
+# Solves: Clash/proxy intercepting campus LAN traffic so deployed projects are unreachable
 #
-# 根因：Windows 代理绕行列表缺少 ::1 (IPv6 localhost)
-# 当浏览器用 IPv6 解析 localhost 时，流量被代理拦截，无法到达本地 server
-#
-# 使用方法：powershell -ExecutionPolicy Bypass -File scripts/fix-proxy-bypass.ps1
+# Usage:
+#   powershell -ExecutionPolicy Bypass -File scripts/fix-proxy-bypass.ps1 -CampusIPs @("10.147.227.36")
 
-$registryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings"
-$current = Get-ItemProperty -Path $registryPath -Name ProxyOverride -ErrorAction SilentlyContinue
+param(
+    [string[]]$CampusIPs = @()
+)
 
-if (-not $current) {
-    Write-Host "[INFO] No system proxy detected, nothing to fix"
-    exit 0
+$ErrorActionPreference = "Stop"
+
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host "  Proxy Bypass Fix Tool" -ForegroundColor Cyan
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host ""
+
+# 1. Check for running proxy processes
+$clashProcs = Get-Process -Name "clash*", "mihomo*", "Clash*", "Mihomo*" -ErrorAction SilentlyContinue
+if ($clashProcs) {
+    Write-Host "[INFO] Clash/Mihomo is running" -ForegroundColor Yellow
+} else {
+    Write-Host "[INFO] No Clash/Mihomo process detected (ignore if using other proxy)" -ForegroundColor Gray
+}
+Write-Host ""
+
+# 2. Fix system proxy bypass list
+$regPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings"
+$current = Get-ItemProperty -Path $regPath -Name ProxyOverride -ErrorAction SilentlyContinue
+
+if ($current -and $current.ProxyOverride) {
+    $entries = $current.ProxyOverride -split ';' | Where-Object { $_ -ne '' }
+    Write-Host "[CURRENT] ProxyOverride: $($current.ProxyOverride)" -ForegroundColor Gray
+} else {
+    $entries = @()
+    Write-Host "[INFO] No system proxy configured, skipping registry modification" -ForegroundColor Gray
 }
 
-$currentValue = $current.ProxyOverride
-$entries = $currentValue -split ';' | Where-Object { $_ -ne '' }
+$appendList = @()
 
-$hasIPv6 = $entries -contains '::1'
-$hasLocalToken = $entries -contains '<local>'
+# Always need these
+if ($entries -notcontains '::1') { $appendList += '::1' }
+if ($entries -notcontains '<local>') { $appendList += '<local>' }
 
-if ($hasIPv6 -and $hasLocalToken) {
-    Write-Host "[OK] Proxy bypass already includes ::1 and <local>"
-    exit 0
+# Campus IPs
+foreach ($ip in $CampusIPs) {
+    if ($entries -notcontains $ip) {
+        $appendList += $ip
+    }
 }
 
-$append = @()
-if (-not $hasIPv6) { $append += "::1" }
-if (-not $hasLocalToken) { $append += "<local>" }
+if ($appendList.Count -gt 0 -and $current) {
+    $entries += $appendList
+    $newValue = ($entries | Select-Object -Unique) -join ';'
+    Set-ItemProperty -Path $regPath -Name ProxyOverride -Value $newValue
 
-$entries += $append
-$newValue = ($entries | Select-Object -Unique) -join ';'
-Set-ItemProperty -Path $registryPath -Name ProxyOverride -Value $newValue
+    Write-Host ""
+    Write-Host "[SYSTEM PROXY] Added bypass entries:" -ForegroundColor Green
+    foreach ($item in $appendList) {
+        Write-Host "  + $item" -ForegroundColor Green
+    }
+    Write-Host "[SYSTEM PROXY] Updated ProxyOverride: $newValue" -ForegroundColor Gray
+} elseif (-not $current) {
+    Write-Host "[SYSTEM PROXY] Skipped - no system proxy active" -ForegroundColor Gray
+} else {
+    Write-Host "[SYSTEM PROXY] All required entries already present" -ForegroundColor Green
+}
 
-Write-Host "[FIXED] Proxy bypass updated"
-if (-not $hasIPv6) { Write-Host "  + ::1 (IPv6 localhost bypass)" }
-if (-not $hasLocalToken) { Write-Host "  + <local> (all local hostnames bypass)" }
+# 3. TUN mode guidance
+Write-Host ""
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host "  TUN Mode Troubleshooting" -ForegroundColor Cyan
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host ""
+
+Write-Host "If Clash is using TUN mode, system proxy bypass does NOT work." -ForegroundColor Yellow
+Write-Host "You must add bypass rules to the Clash config file directly."
+Write-Host ""
+Write-Host "Clash config is usually at: `$env:USERPROFILE\.config\clash\config.yaml" -ForegroundColor White
+Write-Host "                               or your Clash dashboard -> Settings" -ForegroundColor White
+Write-Host ""
+
+if ($CampusIPs.Count -gt 0) {
+    Write-Host "[RECOMMENDED] Add to Clash config bypass section:" -ForegroundColor Cyan
+    Write-Host "----------------------------------------" -ForegroundColor Gray
+    Write-Host "bypass:" -ForegroundColor White
+    foreach ($ip in $CampusIPs) {
+        Write-Host "  - $ip" -ForegroundColor White
+    }
+    Write-Host "----------------------------------------" -ForegroundColor Gray
+}
+
+Write-Host ""
+Write-Host "[NEXT STEPS]" -ForegroundColor Cyan
+Write-Host "  1. Close ALL browser windows and re-open"
+Write-Host "  2. If TUN mode: add bypass to Clash config, then restart Clash"
+Write-Host "  3. Try accessing http://10.147.227.36:3000 (or your port)"
