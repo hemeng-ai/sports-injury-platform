@@ -71,7 +71,7 @@ global.fetch = jest.fn(() => Promise.resolve(mockFetchResponse)) as jest.Mock;
 let DashboardPage: React.ComponentType;
 
 beforeAll(async () => {
-  const mod = await import("@/app/dashboard/page");
+  const mod = await import("@/app/(dashboard)/dashboard/page");
   DashboardPage = mod.default;
 });
 

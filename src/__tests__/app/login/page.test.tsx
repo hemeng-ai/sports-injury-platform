@@ -30,7 +30,7 @@ jest.mock("sonner", () => ({
 let LoginPage: React.ComponentType;
 
 beforeAll(async () => {
-  const mod = await import("@/app/login/page");
+  const mod = await import("@/app/(auth)/login/page");
   LoginPage = mod.default;
 });
 
