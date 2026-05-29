@@ -14,6 +14,15 @@
  * 测试原则：纯函数直接测，saveFile mock 文件系统。
  */
 
+// ---- mock supabase-storage ----
+jest.mock("@/lib/supabase-storage", () => ({
+  uploadToSupabase: jest.fn().mockImplementation((_buf, fileName) =>
+    Promise.resolve("/uploads/" + fileName)
+  ),
+  deleteFromSupabase: jest.fn().mockResolvedValue(undefined),
+  extractFilePathFromUrl: jest.fn((url) => url.replace("/uploads/", "")),
+}));
+
 // ---- mock fs/promises ----
 const mockWriteFile = jest.fn();
 const mockMkdir = jest.fn();
@@ -296,10 +305,6 @@ describe("saveFile — 保存文件到 uploads/", () => {
 
     const file = createMockFile("test-report.pdf", "PDF content here");
     const result = await saveFile(file);
-
-    // 确保 uploads 目录被创建
-    expect(mockMkdir).toHaveBeenCalled();
-    expect(mockWriteFile).toHaveBeenCalled();
 
     // 验证返回结构
     expect(result).toHaveProperty("path");
