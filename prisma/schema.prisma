@@ -1,5 +1,5 @@
-// Prisma Schema — 运动损伤资料管理与指标分析平台
-// 数据库: PostgreSQL (Supabase)
+// Prisma Schema 鈥?杩愬姩鎹熶激璧勬枡绠＄悊涓庢寚鏍囧垎鏋愬钩鍙?
+// 鏁版嵁搴? PostgreSQL (Supabase)
 
 generator client {
   provider = "prisma-client-js"
@@ -7,10 +7,9 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
-// ==================== 用户与权限 ====================
+// ==================== 鐢ㄦ埛涓庢潈闄?====================
 
 model User {
   id                String    @id @default(cuid())
@@ -19,7 +18,7 @@ model User {
   supabaseUserId    String?   @unique
   password          String    // bcrypt hash
   role              Role      @default(VISITOR)
-  passwordChangedAt DateTime? // null = 从未修改过密码
+  passwordChangedAt DateTime? // null = 浠庢湭淇敼杩囧瘑鐮?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   files             File[]
@@ -28,12 +27,12 @@ model User {
 }
 
 enum Role {
-  VISITOR    // 游客（只读）
-  ADMIN      // 管理员（可编辑文件/指标）
-  SUPERADMIN // 超级管理员（可管理用户）
+  VISITOR    // 娓稿锛堝彧璇伙級
+  ADMIN      // 绠＄悊鍛橈紙鍙紪杈戞枃浠?鎸囨爣锛?
+  SUPERADMIN // 瓒呯骇绠＄悊鍛橈紙鍙鐞嗙敤鎴凤級
 }
 
-// ==================== 文件夹（树状结构） ====================
+// ==================== 鏂囦欢澶癸紙鏍戠姸缁撴瀯锛?====================
 
 model Folder {
   id        String     @id @default(cuid())
@@ -48,12 +47,12 @@ model Folder {
 }
 
 enum FolderType {
-  INJURY     // 运动损伤资料
-  INDICATOR  // 指标体系
-  ANALYSIS   // 数据分析
+  INJURY     // 杩愬姩鎹熶激璧勬枡
+  INDICATOR  // 鎸囨爣浣撶郴
+  ANALYSIS   // 鏁版嵁鍒嗘瀽
 }
 
-// ==================== 文件 ====================
+// ==================== 鏂囦欢 ====================
 
 model File {
   id           String    @id @default(cuid())
@@ -69,14 +68,14 @@ model File {
   uploader     User      @relation(fields: [uploadedBy], references: [id])
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
-  deletedAt    DateTime? // 软删除
+  deletedAt    DateTime? // 杞垹闄?
 }
 
-// ==================== 指标体系 ====================
+// ==================== 鎸囨爣浣撶郴 ====================
 
 model IndicatorCategory {
   id          String      @id @default(cuid())
-  name        String      @unique // 力量/平衡/柔韧性/爆发力/关节活动度/步态/疼痛评分
+  name        String      @unique // 鍔涢噺/骞宠　/鏌旈煣鎬?鐖嗗彂鍔?鍏宠妭娲诲姩搴?姝ユ€?鐤肩棝璇勫垎
   description String?
   indicators  Indicator[]
   createdAt   DateTime    @default(now())
@@ -84,13 +83,13 @@ model IndicatorCategory {
 
 model Indicator {
   id            String         @id @default(cuid())
-  name          String         // 指标名称，如 ACL_LSI, YBT, ROM
+  name          String         // 鎸囨爣鍚嶇О锛屽 ACL_LSI, YBT, ROM
   description   String?
-  unit          String         // 单位，如 % / cm / ° / 分
-  normalRange   String         // 正常范围
-  riskThreshold String?        // 风险阈值
-  testMethod    String?        // 测试方法
-  dataSource    String?        // 数据来源
+  unit          String         // 鍗曚綅锛屽 % / cm / 掳 / 鍒?
+  normalRange   String         // 姝ｅ父鑼冨洿
+  riskThreshold String?        // 椋庨櫓闃堝€?
+  testMethod    String?        // 娴嬭瘯鏂规硶
+  dataSource    String?        // 鏁版嵁鏉ユ簮
   categoryId    String
   category      IndicatorCategory @relation(fields: [categoryId], references: [id])
   excelMappings ExcelMapping[]
@@ -101,7 +100,7 @@ model Indicator {
 
 model ExcelMapping {
   id          String    @id @default(cuid())
-  columnName  String    // Excel 列名
+  columnName  String    // Excel 鍒楀悕
   indicatorId String
   indicator   Indicator @relation(fields: [indicatorId], references: [id])
   sheetName   String?
@@ -117,7 +116,7 @@ model ExcelFile {
   createdAt  DateTime @default(now())
 }
 
-// ==================== 分析记录 ====================
+// ==================== 鍒嗘瀽璁板綍 ====================
 
 model AnalysisRecord {
   id        String       @id @default(cuid())
@@ -130,20 +129,21 @@ model AnalysisRecord {
 }
 
 enum AnalysisType {
-  DESCRIPTIVE   // 描述统计
-  CORRELATION   // 相关性分析
-  TREND         // 趋势分析
+  DESCRIPTIVE   // 鎻忚堪缁熻
+  CORRELATION   // 鐩稿叧鎬у垎鏋?
+  TREND         // 瓒嬪娍鍒嗘瀽
 }
 
-// ==================== 操作审计日志 ====================
+// ==================== 鎿嶄綔瀹¤鏃ュ織 ====================
 
 model AuditLog {
   id        String   @id @default(cuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   action    String   // UPLOAD / DELETE / MODIFY / CREATE / LOGIN / EXPORT
-  target    String   // 操作对象类型：FILE / INDICATOR / USER / SYSTEM
-  targetId  String?  // 操作对象 ID
-  detail    String?  // 操作详情
+  target    String   // 鎿嶄綔瀵硅薄绫诲瀷锛欶ILE / INDICATOR / USER / SYSTEM
+  targetId  String?  // 鎿嶄綔瀵硅薄 ID
+  detail    String?  // 鎿嶄綔璇︽儏
   createdAt DateTime @default(now())
 }
+
