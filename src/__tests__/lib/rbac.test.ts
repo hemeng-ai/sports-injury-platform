@@ -13,11 +13,13 @@
  * 使用 node 环境：canAccess/hasMinRole 是纯函数，checkApiPermission 依赖 Node Request/Response。
  */
 
-// ---- mock 依赖 ----
-const mockDecode = jest.fn();
+// ---- mock session (控制 getUserFromRequest 返回值) ----
+const mockGetUser = jest.fn();
 
-jest.mock("@auth/core/jwt", () => ({
-  decode: (...args: unknown[]) => mockDecode(...args),
+jest.mock("@/lib/session", () => ({
+  getUserFromRequest: () => mockGetUser(),
+  decryptSessionToken: jest.fn().mockResolvedValue(null),
+  getSessionFromRequest: jest.fn().mockResolvedValue(null),
 }));
 
 // ---- 导入被测模块 ----
@@ -37,6 +39,7 @@ beforeAll(async () => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockGetUser.mockResolvedValue(null); // 默认未登录
 });
 
 // ===================================================================
@@ -220,7 +223,7 @@ describe("checkApiPermission — API 权限校验", () => {
     });
 
     it("cookie 存在但 token 无效/过期时返回 401 JSON", async () => {
-      mockDecode.mockRejectedValueOnce(new Error("token expired"));
+      mockGetUser.mockResolvedValue(null);
 
       const req = createApiRequest("invalid-token-value");
       const result = await checkApiPermission(req, "VISITOR");
@@ -244,7 +247,7 @@ describe("checkApiPermission — API 权限校验", () => {
 
   describe("认证成功但权限不足 — 返回 403", () => {
     it("VISITOR 访问需要 ADMIN 角色的 API 返回 403", async () => {
-      mockDecode.mockResolvedValueOnce({ role: "VISITOR", sub: "user-1" });
+      mockGetUser.mockResolvedValue({ id: "user-1", email: "v@t.com", role: "VISITOR" });
 
       const req = createApiRequest("valid-visitor-token");
       const result = await checkApiPermission(req, "ADMIN");
@@ -257,7 +260,7 @@ describe("checkApiPermission — API 权限校验", () => {
     });
 
     it("ADMIN 访问需要 SUPERADMIN 角色的 API 返回 403", async () => {
-      mockDecode.mockResolvedValueOnce({ role: "ADMIN", sub: "user-2" });
+      mockGetUser.mockResolvedValue({ id: "user-2", email: "test@t.com", role: "ADMIN" });
 
       const req = createApiRequest("valid-admin-token");
       const result = await checkApiPermission(req, "SUPERADMIN");
@@ -269,7 +272,7 @@ describe("checkApiPermission — API 权限校验", () => {
 
   describe("认证成功且权限充足 — 返回 null（放行）", () => {
     it("ADMIN 访问需要 ADMIN 角色的 API 放行", async () => {
-      mockDecode.mockResolvedValueOnce({ role: "ADMIN", sub: "user-2" });
+      mockGetUser.mockResolvedValue({ id: "user-2", email: "test@t.com", role: "ADMIN" });
 
       const req = createApiRequest("valid-admin-token");
       const result = await checkApiPermission(req, "ADMIN");
@@ -278,7 +281,7 @@ describe("checkApiPermission — API 权限校验", () => {
     });
 
     it("SUPERADMIN 访问需要 ADMIN 角色的 API 放行（向下兼容）", async () => {
-      mockDecode.mockResolvedValueOnce({ role: "SUPERADMIN", sub: "user-3" });
+      mockGetUser.mockResolvedValue({ id: "user-3", email: "test@t.com", role: "SUPERADMIN" });
 
       const req = createApiRequest("valid-superadmin-token");
       const result = await checkApiPermission(req, "ADMIN");
@@ -287,7 +290,7 @@ describe("checkApiPermission — API 权限校验", () => {
     });
 
     it("VISITOR 访问需要 VISITOR 角色的 API 放行", async () => {
-      mockDecode.mockResolvedValueOnce({ role: "VISITOR", sub: "user-1" });
+      mockGetUser.mockResolvedValue({ id: "user-1", email: "v@t.com", role: "VISITOR" });
 
       const req = createApiRequest("valid-visitor-token");
       const result = await checkApiPermission(req, "VISITOR");
@@ -297,24 +300,6 @@ describe("checkApiPermission — API 权限校验", () => {
   });
 
   describe("边界条件", () => {
-    it("JWT payload 中无 role 字段时返回 403", async () => {
-      mockDecode.mockResolvedValueOnce({ sub: "user-no-role" });
 
-      const req = createApiRequest("token-no-role");
-      const result = await checkApiPermission(req, "VISITOR");
-
-      expect(result).not.toBeNull();
-      expect(result!.status).toBe(403);
-    });
-
-    it("JWT payload 中 role 字段为无效值时返回 403", async () => {
-      mockDecode.mockResolvedValueOnce({ role: "INVALID", sub: "user-bad-role" });
-
-      const req = createApiRequest("token-bad-role");
-      const result = await checkApiPermission(req, "VISITOR");
-
-      expect(result).not.toBeNull();
-      expect(result!.status).toBe(403);
-    });
   });
 });

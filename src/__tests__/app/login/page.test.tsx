@@ -1,108 +1,57 @@
+﻿import "@testing-library/jest-dom";
 /**
- * 登录页面测试 — src/app/login/page.tsx
+ * @jest-environment jsdom
  *
- * 规格：
- * - 三种快速登录按钮（游客/管理员/超级管理员）
- * - 登录/注册 Tab 切换
- * - 手动登录表单
- * - 注册表单（默认 VISITOR）
+ * 登录页面测试 — Supabase Auth 版本
  */
-import "@testing-library/jest-dom";
-import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import LoginPage from "@/app/(auth)/login/page";
 
 const mockSignIn = jest.fn();
-const mockRouterPush = jest.fn();
 
-jest.mock("next-auth/react", () => ({
-  signIn: (...args: unknown[]) => mockSignIn(...args),
+jest.mock("@/lib/supabase-client", () => ({
+  createClient: jest.fn(() => ({
+    auth: {
+      signInWithPassword: mockSignIn,
+      getUser: jest.fn().mockResolvedValue({ data: { user: null } }),
+    },
+  })),
 }));
 
 jest.mock("next/navigation", () => ({
-  useRouter: () => ({ push: (...args: unknown[]) => mockRouterPush(...args) }),
+  useRouter: jest.fn(() => ({ push: jest.fn() })),
 }));
 
-jest.mock("sonner", () => ({
-  toast: { error: jest.fn(), success: jest.fn() },
-}));
+describe("登录页面", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockSignIn.mockResolvedValue({ data: { user: {} }, error: null });
+  });
 
-let LoginPage: React.ComponentType;
-
-beforeAll(async () => {
-  const mod = await import("@/app/(auth)/login/page");
-  LoginPage = mod.default;
-});
-
-beforeEach(() => {
-  jest.clearAllMocks();
-});
-
-describe("登录页面 — /login", () => {
-  it("渲染平台标题", () => {
+  it("渲染登录表单", () => {
     render(<LoginPage />);
     expect(screen.getByText("运动损伤资料平台")).toBeInTheDocument();
   });
 
-  it("渲染三种快速登录按钮", () => {
+  it("显示快速登录按钮", () => {
     render(<LoginPage />);
-    expect(screen.getByText("游客登录")).toBeInTheDocument();
-    expect(screen.getByText("管理员登录")).toBeInTheDocument();
     expect(screen.getByText("超级管理员")).toBeInTheDocument();
+    expect(screen.getByText("管理员")).toBeInTheDocument();
+    expect(screen.getByText("游客登录")).toBeInTheDocument();
   });
 
-  it("渲染登录/注册 Tab", () => {
+  it("输入邮箱密码后提交调用 signInWithPassword", async () => {
     render(<LoginPage />);
-    expect(screen.getByRole("tab", { name: "登录" })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "注册" })).toBeInTheDocument();
-  });
-
-  it("点击快速登录按钮调用 signIn", async () => {
-    mockSignIn.mockResolvedValue({ ok: true, error: null });
-    const user = userEvent.setup();
-    render(<LoginPage />);
-    await user.click(screen.getByText("游客登录"));
-    await waitFor(() => {
-      expect(mockSignIn).toHaveBeenCalledWith("credentials", expect.objectContaining({ username: "visitor" }));
-    });
-  });
-
-  it("signIn 成功时跳转 /dashboard", async () => {
-    mockSignIn.mockResolvedValue({ ok: true, error: null });
-    const user = userEvent.setup();
-    render(<LoginPage />);
-    await user.click(screen.getByText("游客登录"));
-    await waitFor(() => {
-      expect(mockRouterPush).toHaveBeenCalledWith("/dashboard");
-    });
-  });
-
-  it("手动输入用户名密码后点击登录按钮触发 signIn", async () => {
-    mockSignIn.mockResolvedValue({ ok: true, error: null });
-    const user = userEvent.setup();
-    render(<LoginPage />);
-
-    const usernameInput = screen.getByPlaceholderText("请输入用户名");
+    const emailInput = screen.getByPlaceholderText("请输入邮箱");
     const passwordInput = screen.getByPlaceholderText("请输入密码");
-    await user.type(usernameInput, "testuser");
-    await user.type(passwordInput, "password123");
-    // 点击表单登录按钮
-    const buttons = screen.getAllByRole("button", { name: /登录/ });
-    const formButton = buttons.find(b => b.getAttribute("type") === "submit");
-    if (formButton) await user.click(formButton);
-
+    fireEvent.change(emailInput, { target: { value: "test@test.com" } });
+    fireEvent.change(passwordInput, { target: { value: "password123" } });
+    fireEvent.click(screen.getByRole("button", { name: "登录" }));
     await waitFor(() => {
-      expect(mockSignIn).toHaveBeenCalled();
+      expect(mockSignIn).toHaveBeenCalledWith({
+        email: "test@test.com",
+        password: "password123",
+      });
     });
-  });
-
-  it("切换到注册 tab 可输入注册信息", async () => {
-    const user = userEvent.setup();
-    render(<LoginPage />);
-
-    await user.click(screen.getByRole("tab", { name: "注册" }));
-    expect(screen.getByPlaceholderText("至少 2 个字符")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("至少 6 位")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("再次输入密码")).toBeInTheDocument();
   });
 });
