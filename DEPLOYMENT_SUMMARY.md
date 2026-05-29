@@ -1,40 +1,25 @@
-# 运动损伤资料管理与指标分析平台 — 部署进度摘要
+# ??????????????? ? ??????
 
-## 项目概况
+## ????
 
-- **技术栈**: Next.js 15 + React 19 + TypeScript + Prisma + Tailwind CSS 4 + Radix UI
-- **认证**: NextAuth v5（Credentials Provider + JWT），三个角色 VISITOR / ADMIN / SUPERADMIN
-- **数据库**: Supabase PostgreSQL（原为 SQLite）
-- **文件存储**: Supabase Storage（原为本地磁盘）
-- **应用托管**: Vercel
-- **项目路径**: D:\ClaudeWorkSpace\my_project\sports-injury-platform
-- **GitHub**: hemeng-ai/sports-injury-platform（master 分支）
+- **???**: Next.js 15 + React 19 + TypeScript + Prisma + Tailwind CSS 4 + Radix UI
+- **??**: NextAuth v5?Credentials Provider + JWT?????? VISITOR / ADMIN / SUPERADMIN
+- **???**: Supabase PostgreSQL
+- **????**: Supabase Storage
+- **????**: Vercel
+- **????**: D:\ClaudeWorkSpace\my_project\sports-injury-platform
+- **GitHub**: hemeng-ai/sports-injury-platform?master ???
 
-## 已完成（本次对话）
+## ????
 
-### 1. 数据库迁移 SQLite → Supabase PostgreSQL
-- `prisma/schema.prisma` provider 已切为 postgresql
-- 9 张表已创建：User, Folder, File, IndicatorCategory, Indicator, ExcelMapping, ExcelFile, AnalysisRecord, AuditLog
-- 初始数据已填充：3 个用户 + 7 个指标体系分类
-- 连接方式：PgBouncer 连接池（端口 6543）
-- Prisma 迁移记录表已建立
+- ???https://sports-injury-platform.vercel.app
+- Supabase Dashboard?https://supabase.com/dashboard
+- Vercel Dashboard?https://vercel.com/hemeng-ais-projects/sports-injury-platform
+- GitHub Actions?https://github.com/hemeng-ai/sports-injury-platform/actions
 
-### 2. 文件存储迁移 → Supabase Storage
-- 新增 `src/lib/supabase-storage.ts`：封装上传/删除/URL 提取
-- 重写 `src/lib/upload.ts`：saveFile() 改为上传到 Supabase Storage，返回公开 URL
-- 更新 `src/app/api/files/[id]/route.ts`：DELETE 时同步清理 Storage
-- 存储桶：sports-injury-files（公开、50MB 限制）
+## ????????? .env ? Vercel / GitHub Secrets?
 
-### 3. 应用部署到 Vercel
-- 本地构建通过（27 条路由）
-- 代码已推送 GitHub
-- Vercel 环境变量已配置（8 个）
-- 线上地址: https://sports-injury-platform.vercel.app
-
-## 环境变量（供新对话参考）
-
-需要设置到 .env 或 Vercel 的变量：
-- DATABASE_URL（Supabase 连接池地址）
+- DATABASE_URL?Supabase ???????? 6543?
 - AUTH_SECRET
 - NEXT_PUBLIC_APP_NAME
 - DEEPSEEK_API_KEY
@@ -43,31 +28,76 @@
 - SUPABASE_SERVICE_ROLE_KEY
 - NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET
 
-（完整值见项目 .env 文件）
+??????? .env ???
 
-## 默认账号
+## ????
 
-| 角色 | 用户名 | 密码 |
+| ?? | ??? | ?? |
 |------|--------|------|
-| 超级管理员 | admin | admin123 |
-| 管理员 | doctor | doctor123 |
-| 游客 | visitor | visitor123 |
-
-## 访问地址
-
-- 线上：https://sports-injury-platform.vercel.app
-- Supabase Dashboard：https://supabase.com/dashboard（项目名 sports-injury-platform）
-- Vercel Dashboard：https://vercel.com/hemeng-ais-projects/sports-injury-platform
-
-## 待办事项（可继续推进）
-
-1. **[可选] 切换到 Supabase Auth**：目前使用 NextAuth + Credentials，后续可迁移到 Supabase 原生 Auth（支持社交登录、Magic Link、RLS 安全策略）
-2. **[建议] 域名配置**：在 Vercel 绑定自定义域名，替换 vercel.app 子域名
-3. **[建议] 完善 CI/CD**：GitHub 推送自动触发 Vercel 构建已生效，可添加预部署测试环节
-4. **[可选] Prisma 版本升级**：当前 6.19.3，可升级到 7.x（提示过 breaking changes）
-5. **[可选] 监控和日志**：接入 Vercel Analytics + Supabase 日志监控
-6. **[建议] IP 白名单**：如果后续切换到 Supabase 直连（5432端口），需要开启 IPv4 Add-on
+| ????? | admin | admin123 |
+| ??? | doctor | doctor123 |
+| ?? | visitor | visitor123 |
 
 ---
 
-将此摘要粘贴到新对话开头，Codex 即可无缝接手。
+## ??????????? CI ???Prisma 7 ???
+
+### ???
+1. schema.prisma ?? url??? prisma.config.js?Prisma 7 breaking change?
+2. CI ????? --no-engine?Prisma 7 ????
+3. ?? route.ts ?? _supabaseAdmin ??
+4. ????????? any ????? Supabase User ???
+5. ?? import ???ThemeToggle default export / PasswordReminder named export?
+6. ?? useSession ?????
+
+### ???
+**????PrismaClient ?????**
+
+??? webpack/???????? Next.js collect page data ?????
+```
+PrismaClientInitializationError: PrismaClient needs to be constructed with 
+a non-empty, valid PrismaClientOptions
+```
+
+??? API ?? `/api/admin/users/[id]/role` ??? PrismaClient ??
+
+???????
+- new PrismaClient() ? ?????? datasource?
+- new PrismaClient({ datasourceUrl }) ? ???Prisma 7 ???????
+- new PrismaClient({ datasources }) ? ???Prisma 7 ???????
+- prisma.config.ts ? prisma.config.js ? ???webpack ?????????
+
+?????Prisma 7 ?? datasource ?? prisma.config.* ?????? Next.js ??? webpack ???????????? prisma.config.* ???PrismaClient ?????????? datasource ???
+
+???????????
+1. ?? Prisma ? 5.x/6.x??? schema ? url ???
+2. ? prisma.config.* ?? src/ ??? webpack ???
+3. ? next.config ??? webpack externals ?? @prisma/client
+4. ?? Prisma 5.x ? url = env("DATABASE_URL") ??
+
+### ???????????????
+- prisma/schema.prisma???? url?
+- prisma/prisma.config.js????
+- src/lib/prisma.ts????????
+- src/app/api/admin/users/[id]/role/route.ts
+- src/app/(dashboard)/analysis/page.tsx
+- src/app/(dashboard)/files/page.tsx
+- src/app/(dashboard)/indicators/page.tsx
+- src/app/(dashboard)/settings/page.tsx
+- src/app/(dashboard)/users/page.tsx
+- src/components/auth/AuthGuard.tsx
+- src/components/auth/PasswordReminder.tsx
+- src/components/layout/DashboardShell.tsx
+- .github/workflows/ci.yml
+
+## ????
+- ???15 suites / 139 tests ????
+- lint?0 error?? warnings?unused vars?
+- prisma generate?????
+
+## ??????
+1. ?????????????? vercel.app?
+2. ?? Supabase Auth??? NextAuth Credentials?
+3. ?? CI/CD?????????
+4. ??????Vercel Analytics + Supabase ???
+5. IP ??????? Supabase ?? 5432 ???
