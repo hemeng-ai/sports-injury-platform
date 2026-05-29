@@ -14,7 +14,7 @@ jobs:
 
     env:
       # 从 GitHub Secrets 注入真实数据库连接（仅 build 阶段需要）
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DATABASE_URL: postgresql://localhost:5432/dummy
       # Prisma generate 需要的数据库 URL（postinstall 用，不实际连接）
       # 从 secrets 注入，避免 Validation Error
       # NextAuth 签名密钥（用于服务端构建时的 token 签名）
@@ -36,7 +36,7 @@ jobs:
 
       - name: 安装依赖
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: postgresql://localhost:5432/dummy
         run: npm ci
 
       - name: Prisma Client（已完成）
@@ -50,6 +50,7 @@ jobs:
 
       - name: 构建应用
         run: npm run build
+
 
 
 
