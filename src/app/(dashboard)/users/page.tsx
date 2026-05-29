@@ -11,6 +11,11 @@ import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Users, Shield, Clock, FileText, Upload, Trash2, UserPlus, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -113,7 +118,7 @@ export default function UsersPage() {
         </TabsList>
 
         <TabsContent value="users" className="mt-4">
-          <UserListTab />
+          <UserListTab isSuperAdmin={isSuperAdmin} />
         </TabsContent>
 
         {isSuperAdmin && (
@@ -127,19 +132,57 @@ export default function UsersPage() {
 }
 
 /** 用户列表 Tab */
-function UserListTab() {
+function UserListTab({ isSuperAdmin }: { isSuperAdmin: boolean }) {
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
+  // 角色变更确认弹窗状态
+  const [targetUser, setTargetUser] = useState<UserRecord | null>(null);
+  const [changingRole, setChangingRole] = useState(false);
 
-  useEffect(() => {
+  const fetchUsers = useCallback(() => {
     fetch("/api/users")
       .then((r) => r.json())
       .then((d) => setUsers(d.users || []))
       .catch(() => toast.error("加载用户列表失败"))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => { fetchUsers(); }, [fetchUsers]);
+
+  const handleRoleChange = async () => {
+    if (!targetUser) return;
+    const newRole = targetUser.role === "ADMIN" ? "VISITOR" : "ADMIN";
+    setChangingRole(true);
+    try {
+      const res = await fetch(`/api/admin/users/${targetUser.id}/role`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: newRole }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || "角色变更失败");
+        return;
+      }
+      toast.success(
+        data.message ||
+          `${targetUser.username} 已${newRole === "ADMIN" ? "设为管理员" : "取消管理员"}`,
+      );
+      // 直接更新本地 state，无需重新请求
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === targetUser.id ? { ...u, role: newRole } : u,
+        ),
+      );
+    } catch {
+      toast.error("网络错误，请稍后重试");
+    } finally {
+      setChangingRole(false);
+      setTargetUser(null);
+    }
+  };
 
   const filteredUsers = users.filter((u) => {
     const matchSearch = !search || u.username.toLowerCase().includes(search.toLowerCase());
@@ -194,6 +237,7 @@ function UserListTab() {
               <TableHead>用户名</TableHead>
               <TableHead>角色</TableHead>
               <TableHead>注册时间</TableHead>
+              {isSuperAdmin && <TableHead className="text-right">操作</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -208,11 +252,44 @@ function UserListTab() {
                 <TableCell className="text-sm text-muted-foreground">
                   {new Date(u.createdAt).toLocaleDateString("zh-CN")}
                 </TableCell>
+                {isSuperAdmin && (
+                  <TableCell className="text-right">
+                    {u.role !== "SUPERADMIN" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setTargetUser(u)}
+                      >
+                        {u.role === "ADMIN" ? "取消管理员" : "设为管理员"}
+                      </Button>
+                    )}
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </CardContent>
+
+      {/* 角色变更确认弹窗 */}
+      <AlertDialog open={!!targetUser} onOpenChange={(open) => { if (!open) setTargetUser(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认角色变更</AlertDialogTitle>
+            <AlertDialogDescription>
+              {targetUser?.role === "ADMIN"
+                ? `确认将「${targetUser?.username}」从管理员降级为游客？`
+                : `确认将「${targetUser?.username}」从游客提升为管理员？`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={changingRole}>取消</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRoleChange} disabled={changingRole}>
+              {changingRole ? "处理中..." : "确认变更"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

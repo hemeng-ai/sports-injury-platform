@@ -1,12 +1,12 @@
 // Prisma Schema — 运动损伤资料管理与指标分析平台
-// 数据库: SQLite (file:./data/sports-injury.db)
+// 数据库: PostgreSQL (Supabase)
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

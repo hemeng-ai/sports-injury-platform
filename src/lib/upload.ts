@@ -1,41 +1,50 @@
-// 文件上传 — 服务端专用逻辑（依赖 Node.js fs/promises）
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
+// 文件上传 —— 使用 Supabase Storage 替代本地文件系统
+import { uploadToSupabase, deleteFromSupabase, extractFilePathFromUrl } from "@/lib/supabase-storage";
 import { generateUniqueFilename } from "@/lib/upload-utils";
 
 // 从 upload-utils 重新导出客户端安全函数
 export { ALLOWED_MIME_TYPES, MAX_FILE_SIZE, validateFileType, formatFileSize, generateUniqueFilename } from "@/lib/upload-utils";
 
-const UPLOAD_DIR = path.join(process.cwd(), "uploads");
-
 /**
- * 保存上传文件到本地 uploads/ 目录
- * @param file — 浏览器 File 对象
- * @param uploadsDir — 可选，自定义上传目录
- * @returns 保存后的文件元数据
+ * 保存上传文件到 Supabase Storage
+ * @param file 浏览器 File 对象
+ * @returns 文件元数据（path 为公开URL）
  */
 export async function saveFile(
   file: File,
-  uploadsDir?: string,
 ): Promise<{ path: string; originalName: string; size: number; mimeType: string }> {
-  const dir = uploadsDir || UPLOAD_DIR;
-  await mkdir(dir, { recursive: true });
-
   const uniqueName = generateUniqueFilename(file.name);
-  const filePath = path.join(dir, uniqueName);
-
   const bytes = await file.arrayBuffer();
-  await writeFile(filePath, Buffer.from(bytes));
+  const buffer = Buffer.from(bytes);
+
+  const publicUrl = await uploadToSupabase(buffer, uniqueName, file.type);
 
   return {
-    path: `/uploads/${uniqueName}`,
+    path: publicUrl,
     originalName: file.name,
     size: bytes.byteLength,
     mimeType: file.type,
   };
 }
 
-/** 获取文件的完整磁盘路径 */
+/**
+ * 删除文件（软删除时同步清理 Supabase Storage）
+ * @param fileUrl 数据库中存储的文件URL
+ */
+export async function removeFile(fileUrl: string): Promise<void> {
+  const filePath = extractFilePathFromUrl(fileUrl);
+  await deleteFromSupabase(filePath);
+}
+
+/**
+ * 获取文件的可访问路径（兼容旧数据）
+ * Supabase Storage 文件 path 已为完整URL，直接返回即可
+ */
 export function getFilePath(relativePath: string): string {
-  return path.join(process.cwd(), relativePath.replace(/^\//, ""));
+  // 如果已经是完整URL，直接返回
+  if (relativePath.startsWith("http://") || relativePath.startsWith("https://")) {
+    return relativePath;
+  }
+  // 兼容旧的 /uploads/ 前缀（迁移过渡期）
+  return relativePath;
 }
