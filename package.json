@@ -35,6 +35,7 @@
     "@radix-ui/react-tabs": "^1.1.6",
     "@radix-ui/react-toast": "^1.2.9",
     "@radix-ui/react-tooltip": "^1.2.0",
+    "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.106.2",
     "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.1",

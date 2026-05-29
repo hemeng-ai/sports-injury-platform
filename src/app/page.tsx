@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+﻿import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 
 /**
@@ -7,8 +7,9 @@ import { redirect } from "next/navigation";
  * - 未登录 → /login
  */
 export default async function Home() {
-  const session = await auth();
-  if (session?.user) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
     redirect("/dashboard");
   }
   redirect("/login");

@@ -2,7 +2,7 @@
 
 // 个人设置页面 — v0.2.0: 密码可见性切换 + 强度指示器 + Loading + 行内错误
 import { useState, useMemo } from "react";
-import { useSession } from "next-auth/react";
+import { createClient } from "@/lib/supabase-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,7 +34,15 @@ function getPasswordStrength(password: string): StrengthLevel {
 }
 
 export default function SettingsPage() {
-  const { data: session } = useSession();
+  const supabase = createClient();
+  const [session, setSession] = useState<{ user?: { role?: string; id?: string; name?: string } } | null>(null);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setSession({ user: { role: (user.app_metadata as Record<string, unknown>)?.role as string, id: user.id, name: user.email } });
+      }
+    });
+  }, [supabase]);
   const user = session?.user;
 
   const [oldPassword, setOldPassword] = useState("");

@@ -1,19 +1,30 @@
-// 修改密码 API — PUT /api/auth/password
+﻿// 修改密码 API — PUT /api/auth/password
+// 通过 Supabase Auth 更新密码
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { createClient } from "@supabase/supabase-js";
 import { checkApiPermission } from "@/lib/rbac";
-import { decode } from "@auth/core/jwt";
-import bcrypt from "bcryptjs";
+import { getUserFromRequest } from "@/lib/session";
 
 export const runtime = "nodejs";
+
+let _supabaseAdmin: ReturnType<typeof createClient> | null = null;
+function getSupabaseAdmin() {
+  if (!_supabaseAdmin) {
+    _supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } },
+    );
+  }
+  return _supabaseAdmin;
+}
 
 export async function PUT(request: NextRequest): Promise<Response> {
   const authError = await checkApiPermission(request, "VISITOR");
   if (authError) return authError;
 
-  // 从 session cookie 获取用户 ID
-  const userId = await getUserId(request);
-  if (!userId) {
+  const user = await getUserFromRequest();
+  if (!user) {
     return NextResponse.json({ error: "无法识别用户身份" }, { status: 401 });
   }
 
@@ -27,38 +38,15 @@ export async function PUT(request: NextRequest): Promise<Response> {
     return NextResponse.json({ error: "新密码至少 6 位" }, { status: 400 });
   }
 
-  const user = await prisma.user.findUnique({ where: { id: userId } });
-  if (!user) {
-    return NextResponse.json({ error: "用户不存在" }, { status: 404 });
-  }
+  // 通过 Supabase Admin API 更新密码
+  const { error } = await getSupabaseAdmin().auth.admin.updateUserById(
+    user.id,
+    { password: newPassword },
+  );
 
-  // 验证旧密码
-  const valid = await bcrypt.compare(oldPassword, user.password);
-  if (!valid) {
-    return NextResponse.json({ error: "原密码错误" }, { status: 403 });
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
-
-  // 更新密码 + 记录修改时间
-  const hash = await bcrypt.hash(newPassword, 12);
-  await prisma.user.update({
-    where: { id: userId },
-    data: { password: hash, passwordChangedAt: new Date() },
-  });
 
   return NextResponse.json({ success: true, message: "密码已修改" });
-}
-
-/** 从 session cookie 解密 JWE token 获取用户 ID（禁止直接 jwtDecrypt + 原始 secret） */
-async function getUserId(request: Request): Promise<string | null> {
-  const cookie = request.headers.get("cookie") || "";
-  const match = cookie.match(/(?:authjs\.session-token|__Secure-authjs\.session-token)=([^;]+)/);
-  if (!match) return null;
-  try {
-    const payload = await decode({
-      token: match[1],
-      secret: process.env.AUTH_SECRET!,
-      salt: "authjs.session-token",
-    });
-    return (payload as { sub?: string }).sub || null;
-  } catch { return null; }
 }

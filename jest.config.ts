@@ -32,6 +32,11 @@ const config: Config = {
   // 路径映射（对齐 tsconfig paths：@/ → src/）
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
+    // Mock Supabase SDK 和认证模块（测试不需要真实连接）
+    "^@supabase/supabase-js$": "<rootDir>/src/__tests__/__mocks__/supabase-js.ts",
+    "^@/lib/session$": "<rootDir>/src/__tests__/__mocks__/lib/session.ts",
+    "^@/lib/supabase-server$": "<rootDir>/src/__tests__/__mocks__/lib/supabase-server.ts",
+    "^@/lib/supabase-client$": "<rootDir>/src/__tests__/__mocks__/lib/supabase-client.ts",
     // 静态资源 mock
     "\\.(css|less|scss|sass)$": "identity-obj-proxy",
     "\\.(jpg|jpeg|png|gif|webp|svg)$":

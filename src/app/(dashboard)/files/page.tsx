@@ -2,7 +2,7 @@
 
 // 文件管理页面 — 集成上传、搜索、列表、预览
 import { useState, useCallback, useEffect, Suspense } from "react";
-import { useSession } from "next-auth/react";
+import { createClient } from "@/lib/supabase-client";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { UploadCloud, ChevronLeft, ChevronRight, PanelLeftOpen, PanelLeftClose } from "lucide-react";
@@ -26,7 +26,15 @@ interface FileRecord {
 }
 
 function FilesPageContent() {
-  const { data: session } = useSession();
+  const supabase = createClient();
+  const [session, setSession] = useState<{ user?: { role?: string; id?: string; name?: string } } | null>(null);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setSession({ user: { role: (user.app_metadata as Record<string, unknown>)?.role as string, id: user.id, name: user.email } });
+      }
+    });
+  }, [supabase]);
   const searchParams = useSearchParams();
   const folderFromUrl = searchParams.get("folderId");
 

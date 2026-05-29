@@ -1,70 +1,23 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { canAccess } from "@/lib/rbac";
-import { decryptSessionToken } from "@/lib/session";
-import type { UserRole } from "@/types";
+﻿import { type NextRequest } from "next/server";
+import { updateSession } from "@/lib/supabase-middleware";
 
 // 路径白名单：无需认证即可访问
 const PUBLIC_PATHS = ["/login"];
-// API 白名单前缀（如 /api/auth/*）
 const PUBLIC_API_PREFIXES = ["/api/auth/"];
-// 公开 API 精确路径
-const PUBLIC_API_PATHS = ["/api/auth/login", "/api/auth/register", "/api/debug"];
-// 静态资源白名单前缀
 const STATIC_PREFIXES = ["/_next", "/favicon.ico", "/public"];
 
 // 角色路由映射：路径 → 最低角色要求
-const ROLE_ROUTES: Record<string, UserRole> = {
+const ROLE_ROUTES: Record<string, string> = {
   "/users": "SUPERADMIN",
   "/settings": "ADMIN",
 };
-
-// 需要 ADMIN+ 角色的 API 前缀
 const ADMIN_API_PREFIXES = ["/api/admin/"];
 
-/**
- * 从 cookie 中提取并验证 JWT，返回 payload 或 null
- */
-async function verifyToken(
-  request: NextRequest,
-): Promise<{ role?: string; sub?: string } | null> {
-  const sessionToken =
-    request.cookies.get("authjs.session-token")?.value ||
-    request.cookies.get("__Secure-authjs.session-token")?.value;
+const ROLE_HIERARCHY = ["VISITOR", "ADMIN", "SUPERADMIN"];
 
-  if (!sessionToken) return null;
-
-  const payload = await decryptSessionToken(sessionToken);
-  return payload as { role?: string; sub?: string } | null;
-}
-
-/**
- * 检查路径是否匹配白名单
- */
-function isPublicPath(pathname: string): boolean {
-  // 精确匹配
-  if (PUBLIC_PATHS.some((p) => pathname === p)) return true;
-  // /api/auth/* 前缀匹配
-  if (PUBLIC_API_PREFIXES.some((p) => pathname.startsWith(p))) return true;
-  return false;
-}
-
-/**
- * 检查是否为 API 路由
- */
-function isApiRoute(pathname: string): boolean {
-  return pathname.startsWith("/api/");
-}
-
-/**
- * 检查是否为公开 API 路由
- */
-function isPublicApi(pathname: string): boolean {
-  // 精确匹配
-  if (PUBLIC_API_PATHS.some((p) => pathname === p)) return true;
-  // /api/auth/* 前缀匹配
-  if (PUBLIC_API_PREFIXES.some((p) => pathname.startsWith(p))) return true;
-  return false;
+function hasMinRole(userRole: string | undefined, required: string): boolean {
+  if (!userRole) return false;
+  return ROLE_HIERARCHY.indexOf(userRole) >= ROLE_HIERARCHY.indexOf(required);
 }
 
 export async function middleware(request: NextRequest) {
@@ -72,66 +25,62 @@ export async function middleware(request: NextRequest) {
 
   // 静态资源放行
   if (STATIC_PREFIXES.some((p) => pathname.startsWith(p))) {
-    return NextResponse.next();
+    return updateSession(request).response;
   }
 
-  // 公开路径放行
-  if (isPublicPath(pathname)) {
-    // 特殊情况：已登录用户访问 /login → 重定向到 /dashboard
-    if (pathname === "/login") {
-      const payload = await verifyToken(request);
-      if (payload?.role) {
-        return NextResponse.redirect(new URL("/dashboard", request.url));
-      }
+  // 获取 Supabase 会话
+  const { supabase, response } = updateSession(request);
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const isApi = pathname.startsWith("/api/");
+  const isPublic =
+    PUBLIC_PATHS.some((p) => pathname === p) ||
+    PUBLIC_API_PREFIXES.some((p) => pathname.startsWith(p));
+
+  // 公开路径直接放行（已登录用户访问 /login 重定向到 /dashboard）
+  if (isPublic) {
+    if (pathname === "/login" && user) {
+      return Response.redirect(new URL("/dashboard", request.url));
     }
-    return NextResponse.next();
+    return response;
   }
 
-  // ---- 以下为受保护路径 ----
-
-  // 验证 token
-  const payload = await verifyToken(request);
-
-  // 未登录
-  if (!payload || !payload.role) {
-    // API 路由 → 返回 401 JSON
-    if (isApiRoute(pathname)) {
-      return NextResponse.json({ error: "未登录，请先登录" }, { status: 401 });
+  // 受保护路径：未登录处理
+  if (!user) {
+    if (isApi) {
+      return Response.json({ error: "未登录，请先登录" }, { status: 401 });
     }
-    // 页面路由 → 重定向到 /login
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(loginUrl);
+    return Response.redirect(loginUrl);
   }
 
-  const userRole = payload.role as UserRole;
+  // 角色检查
+  const userRole = (user.app_metadata as Record<string, unknown>)?.role as string | undefined;
 
-  // 检查角色路由守卫（页面级）
+  // 页面级角色守卫
   for (const [routePrefix, requiredRole] of Object.entries(ROLE_ROUTES)) {
     if (pathname.startsWith(routePrefix)) {
-      if (!canAccess(userRole, requiredRole)) {
-        // 角色不足 → 重定向到 /login（中间件层无法渲染 403 页面，由 AuthGuard 处理）
-        return NextResponse.redirect(new URL("/login", request.url));
+      if (!hasMinRole(userRole, requiredRole)) {
+        return Response.redirect(new URL("/login", request.url));
       }
     }
   }
 
-  // 检查 API 角色守卫
-  if (isApiRoute(pathname) && !isPublicApi(pathname)) {
-    // 检查是否需要 ADMIN 权限
+  // API 管理员前缀守卫
+  if (isApi) {
     for (const adminPrefix of ADMIN_API_PREFIXES) {
       if (pathname.startsWith(adminPrefix)) {
-        if (!canAccess(userRole, "ADMIN")) {
-          return NextResponse.json({ error: "权限不足" }, { status: 403 });
+        if (!hasMinRole(userRole, "ADMIN")) {
+          return Response.json({ error: "权限不足" }, { status: 403 });
         }
       }
     }
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {
-  // 匹配所有路径，除了静态资源和内部 Next.js 路径
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

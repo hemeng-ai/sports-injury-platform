@@ -1,43 +1,41 @@
-"use client";
+﻿"use client";
 
-// 密码修改提醒 — v0.2.0: 改用 sonner Toast 替代固定横幅
-import { useEffect } from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
-import { ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase-client";
 
-export default function PasswordReminder() {
-  const { data: session } = useSession();
-  const router = useRouter();
+/**
+ * 密码修改提醒 — 检测用户是否从未修改过默认密码
+ */
+export function PasswordReminder() {
+  const supabase = createClient();
+  const [showReminder, setShowReminder] = useState(false);
 
   useEffect(() => {
-    if (session?.user) {
-      const passwordChangedAt = (session.user as Record<string, unknown>).passwordChangedAt;
-      if (!passwordChangedAt) {
-        const dismissed = localStorage.getItem("password-reminder-dismissed");
-        if (!dismissed) {
-          toast.warning("建议尽快修改默认密码", {
-            description: "当前账户尚未修改过密码，为了账户安全请前往个人设置进行修改",
-            icon: <ShieldAlert className="h-5 w-5 text-warning" />,
-            duration: Infinity,
-            dismissible: true,
-            action: {
-              label: "去修改",
-              onClick: () => router.push("/settings"),
-            },
-            onDismiss: () => {
-              localStorage.setItem("password-reminder-dismissed", "true");
-            },
-            onAutoClose: () => {
-              localStorage.setItem("password-reminder-dismissed", "true");
-            },
-          });
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      // 检查是否从未修改密码（通过 user_metadata 中的标记）
+      const passwordChangedAt = (user.user_metadata as Record<string, string>)?.passwordChangedAt;
+      if (!passwordChangedAt && user.created_at) {
+        const createdDate = new Date(user.created_at);
+        const daysSinceCreation = (Date.now() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
+        // 创建超过 1 天且未修改过密码 → 提醒
+        if (daysSinceCreation > 1) {
+          setShowReminder(true);
         }
       }
-    }
-  }, [session, router]);
+    });
+  }, [supabase]);
 
-  return null; // 不再渲染任何视觉元素
+  if (!showReminder) return null;
+
+  return (
+    <Button variant="ghost" size="sm" asChild className="text-amber-500">
+      <Link href="/settings">
+        建议修改默认密码
+      </Link>
+    </Button>
+  );
 }

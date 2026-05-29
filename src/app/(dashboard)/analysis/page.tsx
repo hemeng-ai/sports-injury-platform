@@ -2,7 +2,7 @@
 
 // 数据分析页面 — 三栏布局：指标选择 | 图表 | 统计结果
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
+import { createClient } from "@/lib/supabase-client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {

@@ -20,9 +20,13 @@ jest.mock("@auth/core/jwt", () => ({
   decode: (...args: unknown[]) => mockDecode(...args),
 }));
 
+
+// ---- spy on global Response.redirect (used by Supabase middleware) ----
+const originalRedirect = Response.redirect.bind(Response);
+Response.redirect = (...args) => { spyRedirect(...args); return originalRedirect(...args); };
+
 // ---- spy NextResponse 方法 ----
 const spyNext = jest.fn();
-const spyRedirect = jest.fn();
 const spyJson = jest.fn();
 
 // 在 mock factory 内部使用 requireActual 避免 hoisting 问题

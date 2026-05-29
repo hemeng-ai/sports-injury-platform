@@ -2,7 +2,7 @@
 
 // 用户管理页面 — v0.2.0: 用户列表 + 操作日志 Tab（超级管理员可见）
 import { useEffect, useState, useCallback } from "react";
-import { useSession } from "next-auth/react";
+import { createClient } from "@/lib/supabase-client";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,18 +71,34 @@ const ACTION_LABELS: Record<string, string> = {
 };
 
 export default function UsersPage() {
-  const { data: session } = useSession();
+  const supabase = createClient();
   const router = useRouter();
-  const isSuperAdmin = (session?.user as { role?: string } | undefined)?.role === "SUPERADMIN";
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const isSuperAdmin = userRole === "SUPERADMIN";
 
-  // 非管理员重定向
   useEffect(() => {
-    if (session && !isSuperAdmin && (session?.user as { role?: string } | undefined)?.role !== "ADMIN") {
-      router.push("/dashboard");
-    }
-  }, [session, isSuperAdmin, router]);
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+      const role = (user.app_metadata as Record<string, unknown>)?.role as string || "VISITOR";
+      setUserRole(role);
+      if (role !== "SUPERADMIN" && role !== "ADMIN") {
+        router.push("/dashboard");
+      }
+    });
+  }, [supabase, router]);
 
-  if (!isSuperAdmin && (session?.user as { role?: string } | undefined)?.role !== "ADMIN") {
+  if (userRole === null) {
+    return (
+      <div className="p-8">
+        <p className="text-muted-foreground">加载中...</p>
+      </div>
+    );
+  }
+
+  if (userRole !== "SUPERADMIN" && userRole !== "ADMIN") {
     return (
       <div className="p-8">
         <p className="text-muted-foreground">无权访问此页面</p>

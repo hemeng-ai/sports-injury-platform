@@ -1,6 +1,6 @@
-// RBAC 角色权限控制工具函数
+﻿// RBAC 角色权限控制
 import type { UserRole } from "@/types";
-import { getSessionFromRequest } from "@/lib/session";
+import { getUserFromRequest } from "@/lib/session";
 
 const ROLE_HIERARCHY: UserRole[] = ["VISITOR", "ADMIN", "SUPERADMIN"];
 
@@ -23,22 +23,25 @@ export function hasMinRole(
   return ROLE_HIERARCHY.indexOf(role as UserRole) >= ROLE_HIERARCHY.indexOf(minRole);
 }
 
+/**
+ * API Route 权限检查
+ * 从 Supabase 会话获取角色，验证是否满足最低权限要求
+ */
 export async function checkApiPermission(
   request: Request,
   minRole: UserRole,
 ): Promise<Response | null> {
-  const session = await getSessionFromRequest(request);
+  const user = await getUserFromRequest();
 
-  if (!session) {
+  if (!user) {
     return new Response(JSON.stringify({ error: "未登录，请先登录" }), {
       status: 401,
       headers: { "Content-Type": "application/json" },
     });
   }
 
-  const userRole = session.role as string | undefined;
-  if (!userRole || !canAccess(userRole, minRole)) {
-    return new Response(JSON.stringify({ error: "权限不足，无法访问此资源" }), {
+  if (!canAccess(user.role, minRole)) {
+    return new Response(JSON.stringify({ error: "权限不足" }), {
       status: 403,
       headers: { "Content-Type": "application/json" },
     });

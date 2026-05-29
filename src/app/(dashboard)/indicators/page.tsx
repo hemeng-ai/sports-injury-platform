@@ -2,7 +2,7 @@
 
 // 指标体系管理页面 — 指标表格 + 创建/编辑 + Excel 导入
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
+import { createClient } from "@/lib/supabase-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -55,7 +55,15 @@ interface ExcelParseResult {
 }
 
 export default function IndicatorsPage() {
-  const { data: session } = useSession();
+  const supabase = createClient();
+  const [session, setSession] = useState<{ user?: { role?: string; id?: string; name?: string } } | null>(null);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setSession({ user: { role: (user.app_metadata as Record<string, unknown>)?.role as string, id: user.id, name: user.email } });
+      }
+    });
+  }, [supabase]);
   const userRole = session?.user?.role as string | undefined;
   const canEdit = userRole === "ADMIN" || userRole === "SUPERADMIN";
 
