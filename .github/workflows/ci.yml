@@ -15,6 +15,8 @@ jobs:
     env:
       # 从 GitHub Secrets 注入真实数据库连接（仅 build 阶段需要）
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      # Prisma generate 需要的数据库 URL（postinstall 用，不实际连接）
+      # 从 secrets 注入，避免 Validation Error
       # NextAuth 签名密钥（用于服务端构建时的 token 签名）
       AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
@@ -32,8 +34,8 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: 安装依赖
-        run: npm ci
+      - name: 安装依赖（跳过 postinstall）
+        run: npm ci --ignore-scripts
 
       - name: 生成 Prisma Client
         run: npx prisma generate
@@ -46,4 +48,6 @@ jobs:
 
       - name: 构建应用
         run: npm run build
+
+
 
