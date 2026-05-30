@@ -11,6 +11,10 @@
     "prisma:push": "prisma db push",
     "prisma:studio": "prisma studio",
     "prisma:seed": "tsx prisma/seed.ts",
+    "test:smoke": "tsx scripts/smoke-test.mts",
+    "test:smoke:prod": "tsx scripts/smoke-test.mts https://sports-injury-platform.vercel.app",
+    "test:smoke": "tsx scripts/smoke-test.mts",
+    "test:smoke:prod": "tsx scripts/smoke-test.mts https://sports-injury-platform.vercel.app",
     "postinstall": "prisma generate"
   },
   "dependencies": {

@@ -1,0 +1,37 @@
+name: Smoke Test (Production)
+
+on:
+  # 手动触发（可在 GitHub Actions 页面指定 URL）
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: 'Target URL (leave default for production)'
+        required: false
+        default: 'https://sports-injury-platform.vercel.app'
+  # 每天定时检查生产环境
+  schedule:
+    - cron: '0 2 * * *'  # UTC 2:00 = 北京时间 10:00
+
+jobs:
+  smoke:
+    name: Smoke Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SMOKE_TEST_EMAIL: ${"${{ secrets.SMOKE_TEST_EMAIL }}"}
+      SMOKE_TEST_PASSWORD: ${"${{ secrets.SMOKE_TEST_PASSWORD }}"}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install tsx
+        run: npm install -g tsx
+
+      - name: Run smoke tests
+        run: tsx scripts/smoke-test.mts ${"${{ github.event.inputs.target_url || 'https://sports-injury-platform.vercel.app' }}"}
