@@ -27,7 +27,6 @@ interface Indicator {
 }
 
 export default function AnalysisPage() {
-  useSession(); // 确保已登录
 
   const [indicators, setIndicators] = useState<Indicator[]>([]);
   const [selectedX, setSelectedX] = useState("");

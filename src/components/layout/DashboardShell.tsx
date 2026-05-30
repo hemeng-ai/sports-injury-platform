@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
+import type { User } from "@supabase/supabase-js";
 import { usePathname, useRouter } from "next/navigation";
 
 import Link from "next/link";
@@ -12,7 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import ThemeToggle from "@/components/layout/ThemeToggle";
 import { PasswordReminder } from "@/components/auth/PasswordReminder";
 import { createClient } from "@/lib/supabase-client";
 
@@ -52,7 +53,7 @@ export default function DashboardShell({
   const [user, setUser] = useState<{ id: string; email: string; role: string } | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user: supabaseUser } }) => {
+    supabase.auth.getUser().then(({ data: { user: supabaseUser } }: { data: { user: User | null } }) => {
       if (supabaseUser) {
         setUser({
           id: supabaseUser.id,

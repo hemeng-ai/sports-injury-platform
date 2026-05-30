@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
+import type { User } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase-client";
 import type { UserRole } from "@/types";
@@ -21,7 +22,7 @@ export function AuthGuard({ children, minRole }: AuthGuardProps) {
   const [authorized, setAuthorized] = useState<boolean | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(({ data: { user } }: { data: { user: User | null } }) => {
       if (!user) {
         router.push("/login");
         return;

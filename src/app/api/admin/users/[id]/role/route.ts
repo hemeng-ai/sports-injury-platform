@@ -19,12 +19,6 @@ function getSupabaseAdmin() {
 
 export const runtime = "nodejs";
 
-const _supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } },
-);
-
 const ALLOWED_ROLES = ["ADMIN", "VISITOR"] as const;
 
 export async function PATCH(

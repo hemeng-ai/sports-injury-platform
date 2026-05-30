@@ -7,7 +7,7 @@
  */
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import PasswordReminder from "@/components/auth/PasswordReminder";
+import { PasswordReminder } from "@/components/auth/PasswordReminder";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Files, BarChart3, Upload, Users, FileText, PlusCircle, UserPlus, Clock } from "lucide-react";

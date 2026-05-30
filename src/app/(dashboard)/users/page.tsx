@@ -2,6 +2,7 @@
 
 // 用户管理页面 — v0.2.0: 用户列表 + 操作日志 Tab（超级管理员可见）
 import { useEffect, useState, useCallback } from "react";
+import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase-client";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -77,7 +78,7 @@ export default function UsersPage() {
   const isSuperAdmin = userRole === "SUPERADMIN";
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(({ data: { user } }: { data: { user: User | null } }) => {
       if (!user) {
         router.push("/login");
         return;

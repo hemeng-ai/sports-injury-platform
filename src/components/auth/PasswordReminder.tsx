@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
+import type { User } from "@supabase/supabase-js";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ export function PasswordReminder() {
   const [showReminder, setShowReminder] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(({ data: { user } }: { data: { user: User | null } }) => {
       if (!user) return;
       // 检查是否从未修改密码（通过 user_metadata 中的标记）
       const passwordChangedAt = (user.user_metadata as Record<string, string>)?.passwordChangedAt;

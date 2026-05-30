@@ -1,7 +1,8 @@
 "use client";
 
 // 个人设置页面 — v0.2.0: 密码可见性切换 + 强度指示器 + Loading + 行内错误
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,9 +38,9 @@ export default function SettingsPage() {
   const supabase = createClient();
   const [session, setSession] = useState<{ user?: { role?: string; id?: string; name?: string } } | null>(null);
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(({ data: { user } }: { data: { user: SupabaseUser | null } }) => {
       if (user) {
-        setSession({ user: { role: (user.app_metadata as Record<string, unknown>)?.role as string, id: user.id, name: user.email } });
+        setSession({ user: { role: (user.app_metadata as Record<string, unknown>)?.role as string, id: user.id, name: user.email ?? undefined } });
       }
     });
   }, [supabase]);
@@ -118,7 +119,7 @@ export default function SettingsPage() {
         <CardContent className="grid grid-cols-2 gap-4">
           <div>
             <Label className="text-xs text-muted-foreground">用户名</Label>
-            <p className="text-sm font-medium mt-1">{user?.name || user?.email || "—"}</p>
+            <p className="text-sm font-medium mt-1">{user?.name || "—"}</p>
           </div>
           <div>
             <Label className="text-xs text-muted-foreground">角色</Label>
