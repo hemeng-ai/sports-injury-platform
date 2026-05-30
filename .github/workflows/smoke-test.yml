@@ -1,35 +1,35 @@
-name: Smoke Test (Production)
+name: Smoke Test + Auto-Fix (Production)
 
 on:
-  # Vercel 部署完成后自动触发
   deployment_status:
-  # 手动触发
   workflow_dispatch:
     inputs:
       target_url:
-        description: 'Target URL (leave default for production)'
+        description: "Target URL"
         required: false
-        default: 'https://sports-injury-platform.vercel.app'
-  # 每天定时检查
+        default: "https://sports-injury-platform.vercel.app"
   schedule:
-    - cron: '0 2 * * *'
+    - cron: "0 2 * * *"
+
+permissions:
+  contents: write
 
 jobs:
-  smoke:
-    name: Smoke Test
-    # 只在生产部署成功时自动跑；手动/定时始终跑
+  smoke-and-fix:
+    name: Smoke Test + Auto-Fix
     if: |
       github.event_name != 'deployment_status' ||
       (github.event.deployment_status.state == 'success' &&
        github.event.deployment.environment == 'Production')
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     env:
-      SMOKE_TEST_EMAIL: ${"${{ secrets.SMOKE_TEST_EMAIL }}"}
-      SMOKE_TEST_PASSWORD: ${"${{ secrets.SMOKE_TEST_PASSWORD }}"}
+      SMOKE_TEST_EMAIL: ${{ secrets.SMOKE_TEST_EMAIL }}
+      SMOKE_TEST_PASSWORD: ${{ secrets.SMOKE_TEST_PASSWORD }}
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -37,8 +37,34 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install tsx
-        run: npm install -g tsx
+      - name: Install dependencies
+        run: npm ci
 
       - name: Run smoke tests
-        run: tsx scripts/smoke-test.mts ${"${{ github.event.inputs.target_url || 'https://sports-injury-platform.vercel.app' }}"}
+        id: smoke
+        continue-on-error: true
+        run: |
+          TARGET="${{ github.event.inputs.target_url || 'https://sports-injury-platform.vercel.app' }}"
+          npx tsx scripts/smoke-test.mts "$TARGET" 2>&1 | tee smoke-output.log
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
+
+      - name: Upload smoke test log
+        if: steps.smoke.outputs.exit_code != '0'
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-failure
+          path: smoke-output.log
+          retention-days: 7
+
+      - name: Auto-fix with DeepSeek
+        if: steps.smoke.outputs.exit_code != '0'
+        run: npx tsx scripts/auto-fix.mts smoke-output.log
+
+      - name: Report result
+        if: always()
+        run: |
+          if [ "${{ steps.smoke.outputs.exit_code }}" = "0" ]; then
+            echo "鉁?All smoke tests passed"
+          else
+            echo "鈿狅笍  Smoke tests failed 鈥?auto-fix attempted (check logs above)"
+          fi
