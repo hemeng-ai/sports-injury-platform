@@ -1,20 +1,27 @@
 name: Smoke Test (Production)
 
 on:
-  # 手动触发（可在 GitHub Actions 页面指定 URL）
+  # Vercel 部署完成后自动触发
+  deployment_status:
+  # 手动触发
   workflow_dispatch:
     inputs:
       target_url:
         description: 'Target URL (leave default for production)'
         required: false
         default: 'https://sports-injury-platform.vercel.app'
-  # 每天定时检查生产环境
+  # 每天定时检查
   schedule:
-    - cron: '0 2 * * *'  # UTC 2:00 = 北京时间 10:00
+    - cron: '0 2 * * *'
 
 jobs:
   smoke:
     name: Smoke Test
+    # 只在生产部署成功时自动跑；手动/定时始终跑
+    if: |
+      github.event_name != 'deployment_status' ||
+      (github.event.deployment_status.state == 'success' &&
+       github.event.deployment.environment == 'Production')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
