@@ -27,6 +27,7 @@ jobs:
       SMOKE_TEST_EMAIL: ${{ secrets.SMOKE_TEST_EMAIL }}
       SMOKE_TEST_PASSWORD: ${{ secrets.SMOKE_TEST_PASSWORD }}
       DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+      NOTIFY_WEBHOOK: ${{ secrets.NOTIFY_WEBHOOK }}
 
     steps:
       - name: Checkout code
@@ -57,14 +58,19 @@ jobs:
           retention-days: 7
 
       - name: Auto-fix with DeepSeek
+        id: autofix
         if: steps.smoke.outputs.exit_code != '0'
-        run: npx tsx scripts/auto-fix.mts smoke-output.log
+        continue-on-error: true
+        run: npx tsx scripts/auto-fix.mts smoke-output.log 2>&1 | tee autofix-output.log
 
-      - name: Report result
-        if: always()
-        run: |
-          if [ "${{ steps.smoke.outputs.exit_code }}" = "0" ]; then
-            echo "鉁?All smoke tests passed"
-          else
-            echo "鈿狅笍  Smoke tests failed 鈥?auto-fix attempted (check logs above)"
-          fi
+      - name: Notify — smoke test passed
+        if: steps.smoke.outputs.exit_code == '0'
+        run: npx tsx scripts/notify.mts smoke success
+
+      - name: Notify — auto-fix succeeded
+        if: steps.autofix.outcome == 'success'
+        run: npx tsx scripts/notify.mts auto_fix success "自动修复已提交并推送，等待重新部署"
+
+      - name: Notify — auto-fix failed (need manual)
+        if: steps.autofix.outcome == 'failure'
+        run: npx tsx scripts/notify.mts smoke failure "自动修复失败，需要人工介入"
