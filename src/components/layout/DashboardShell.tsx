@@ -72,16 +72,16 @@ export default function DashboardShell({
 
   const sidebar = (
     <aside
-      className={cn(
+      style={{ borderColor: "var(--sidebar-border)", boxShadow: "1px 0 8px rgba(61, 57, 41, 0.04)" }} className={cn(
         "fixed top-0 left-0 z-40 h-screen bg-background border-r flex flex-col transition-all duration-300",
         collapsed ? "w-16" : "w-60",
         mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
       )}
     >
       {/* Logo */}
-      <div className={cn("flex items-center h-14 px-4 border-b", collapsed && "justify-center")}>
+      <div style={{ borderColor: "var(--sidebar-border)", boxShadow: "1px 0 8px rgba(61, 57, 41, 0.04)" }} className={cn("flex items-center h-14 px-4 border-b", collapsed && "justify-center")}>
         {!collapsed && (
-          <Link href="/dashboard" className="text-sm font-bold truncate">
+          <Link href="/dashboard" className="text-sm font-bold truncate" style={{ color: "#2D9D8E" }}>
             运动损伤资料平台
           </Link>
         )}
@@ -97,7 +97,7 @@ export default function DashboardShell({
               key={item.href}
               href={item.href}
               onClick={() => setMobileOpen(false)}
-              className={cn(
+              style={{ borderColor: "var(--sidebar-border)", boxShadow: "1px 0 8px rgba(61, 57, 41, 0.04)" }} className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
                 collapsed && "justify-center px-2",
                 active
@@ -153,13 +153,13 @@ export default function DashboardShell({
 
       {/* Main content */}
       <div
-        className={cn(
+        style={{ borderColor: "var(--sidebar-border)", boxShadow: "1px 0 8px rgba(61, 57, 41, 0.04)" }} className={cn(
           "transition-all duration-300",
           collapsed ? "lg:ml-16" : "lg:ml-60",
         )}
       >
         {/* Top bar */}
-        <header className="sticky top-0 z-20 flex items-center justify-between h-14 px-4 border-b bg-background/80 backdrop-blur-sm">
+        <header className="sticky top-0 z-20 flex items-center justify-between h-14 px-4 border-b bg-background/70 backdrop-blur-md">
           <Button
             variant="ghost"
             size="icon"

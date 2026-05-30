@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/react";
@@ -18,8 +18,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function() {
+            try {
+              var theme = localStorage.getItem("sports-injury-theme") || "dark";
+              if (theme === "dark") {
+                document.documentElement.classList.add("dark");
+              } else {
+                document.documentElement.classList.remove("dark");
+              }
+            } catch(e) {}
+          })();
+        ` }} />
+      </head>
       <body className="antialiased">
-        <NextTopLoader color="#06B6D4" height={3} showSpinner={false} />
+        <NextTopLoader color="#2D9D8E" height={3} showSpinner={false} />
         <ThemeProvider>{children}</ThemeProvider>
         <Analytics />
         <SpeedInsights />

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @plugin "tailwindcss-animate";
 
-/* ==================== shadcn/ui 暗色主题 CSS 变量 ==================== */
+/* ==================== 柔和温暖 + 专业医疗 主题 ==================== */
 
 @custom-variant dark (&:is(.dark *));
 
@@ -45,110 +45,104 @@
 }
 
 :root {
-  /* 明亮主题 — 背景层级（由浅到深） */
-  --radius: 0.625rem;
-  --background: #F8FAFC;
-  --foreground: #1E293B;
+  --radius: 0.75rem;
+
+  /* 暖白基底：奶油白 → 温暖羊皮纸 */
+  --background: #FFFBF5;
+  --foreground: #3D3929;
   --card: #FFFFFF;
-  --card-foreground: #1E293B;
+  --card-foreground: #3D3929;
   --popover: #FFFFFF;
-  --popover-foreground: #1E293B;
+  --popover-foreground: #3D3929;
 
-  /* 主交互色：天蓝 */
-  --primary: #0EA5E9;
+  /* 主色：医疗暖绿（sage / teal 暖调） */
+  --primary: #2D9D8E;
   --primary-foreground: #FFFFFF;
-  --secondary: #F1F5F9;
-  --secondary-foreground: #1E293B;
-  --muted: #F1F5F9;
-  --muted-foreground: #64748B;
-  --accent: #F1F5F9;
-  --accent-foreground: #1E293B;
+  --secondary: #F5F0E8;
+  --secondary-foreground: #3D3929;
+  --muted: #F5F0E8;
+  --muted-foreground: #8B8576;
+  --accent: #FDF0E0;
+  --accent-foreground: #3D3929;
 
-  /* 破坏性操作色 */
-  --destructive: #EF4444;
+  /* 破坏性操作 */
+  --destructive: #E0736B;
   --destructive-foreground: #FFFFFF;
 
-  /* 边框/输入框 */
-  --border: #E2E8F0;
-  --input: #E2E8F0;
-  --ring: #0EA5E9;
+  /* 边框/输入框：暖灰 */
+  --border: #E8E2D4;
+  --input: #E8E2D4;
+  --ring: #2D9D8E;
 
-  /* 图表色板 */
-  --chart-1: #0EA5E9;
-  --chart-2: #F59E0B;
-  --chart-3: #06B6D4;
-  --chart-4: #E6A817;
-  --chart-5: #38BDF8;
+  /* 图表色板：暖调渐进 */
+  --chart-1: #2D9D8E;
+  --chart-2: #E8A84C;
+  --chart-3: #5FB0A6;
+  --chart-4: #D4986A;
+  --chart-5: #8FC9BF;
 
   /* 侧边栏 */
-  --sidebar: #FFFFFF;
-  --sidebar-foreground: #1E293B;
-  --sidebar-primary: #0EA5E9;
+  --sidebar: #FFFBF5;
+  --sidebar-foreground: #3D3929;
+  --sidebar-primary: #2D9D8E;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F1F5F9;
-  --sidebar-accent-foreground: #1E293B;
-  --sidebar-border: #E2E8F0;
-  --sidebar-ring: #0EA5E9;
+  --sidebar-accent: #F5F0E8;
+  --sidebar-accent-foreground: #3D3929;
+  --sidebar-border: #E8E2D4;
+  --sidebar-ring: #2D9D8E;
 
   /* 警告色 */
-  --warning: #E6A817;
-  --warning-foreground: #1E293B;
+  --warning: #E8A84C;
+  --warning-foreground: #3D3929;
 
   /* 文字层级 */
-  --text-muted: #94A3B8;
+  --text-muted: #A69F8D;
 }
 
 .dark {
-  /* 背景层级（由深到浅） */
-  --background: #0F172A;
-  --foreground: #E2E8F0;
-  --card: #1E293B;
-  --card-foreground: #E2E8F0;
-  --popover: #1E293B;
-  --popover-foreground: #E2E8F0;
+  /* 深暖：深棕绿基底 */
+  --background: #1A1D1A;
+  --foreground: #E8E4D8;
+  --card: #242824;
+  --card-foreground: #E8E4D8;
+  --popover: #242824;
+  --popover-foreground: #E8E4D8;
 
-  /* 主交互色：亮天蓝 */
-  --primary: #38BDF8;
-  --primary-foreground: #0F172A;
-  --secondary: #1E293B;
-  --secondary-foreground: #E2E8F0;
-  --muted: #1E293B;
-  --muted-foreground: #94A3B8;
-  --accent: #334155;
-  --accent-foreground: #E2E8F0;
+  --primary: #4DB8AC;
+  --primary-foreground: #1A1D1A;
+  --secondary: #2A2E2A;
+  --secondary-foreground: #E8E4D8;
+  --muted: #2A2E2A;
+  --muted-foreground: #8A8576;
+  --accent: #3A3630;
+  --accent-foreground: #E8E4D8;
 
-  /* 破坏性操作色 */
-  --destructive: #EF4444;
+  --destructive: #E0736B;
   --destructive-foreground: #FFFFFF;
 
-  /* 边框/输入框 */
-  --border: rgba(148, 163, 184, 0.2);
-  --input: rgba(148, 163, 184, 0.15);
-  --ring: #38BDF8;
+  --border: rgba(168, 160, 140, 0.2);
+  --input: rgba(168, 160, 140, 0.15);
+  --ring: #4DB8AC;
 
-  /* 图表色板 */
-  --chart-1: #38BDF8;
-  --chart-2: #F59E0B;
-  --chart-3: #22D3EE;
-  --chart-4: #E6A817;
-  --chart-5: #7DD3FC;
+  --chart-1: #4DB8AC;
+  --chart-2: #E8A84C;
+  --chart-3: #6FC9BD;
+  --chart-4: #D4986A;
+  --chart-5: #9FD4CB;
 
-  /* 侧边栏 */
-  --sidebar: #1E293B;
-  --sidebar-foreground: #E2E8F0;
-  --sidebar-primary: #38BDF8;
-  --sidebar-primary-foreground: #0F172A;
-  --sidebar-accent: #334155;
-  --sidebar-accent-foreground: #E2E8F0;
-  --sidebar-border: rgba(148, 163, 184, 0.2);
-  --sidebar-ring: #38BDF8;
+  --sidebar: #1A1D1A;
+  --sidebar-foreground: #E8E4D8;
+  --sidebar-primary: #4DB8AC;
+  --sidebar-primary-foreground: #1A1D1A;
+  --sidebar-accent: #2A2E2A;
+  --sidebar-accent-foreground: #E8E4D8;
+  --sidebar-border: rgba(168, 160, 140, 0.2);
+  --sidebar-ring: #4DB8AC;
 
-  /* 扩展：警告/提醒色 */
-  --warning: #E6A817;
-  --warning-foreground: #0F172A;
+  --warning: #E8A84C;
+  --warning-foreground: #1A1D1A;
 
-  /* 文字层级扩展 */
-  --text-muted: #64748B;
+  --text-muted: #6A6558;
 }
 
 @theme inline {
@@ -165,9 +159,8 @@
   @apply border-border;
 }
 
-/* 全局主题切换平滑过渡 */
 html {
-  transition: color 0.3s ease, background-color 0.3s ease;
+  transition: color 0.4s ease, background-color 0.4s ease;
 }
 
 html.dark {
@@ -175,17 +168,20 @@ html.dark {
 }
 
 body {
-  @apply bg-background text-foreground transition-colors duration-300;
-  /* 中文优先：Noto Sans SC → PingFang SC → Microsoft YaHei → Geist Sans → system fallback */
+  @apply bg-background text-foreground transition-colors duration-400;
   font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  /* 柔和的背景纹理 */
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(45, 157, 142, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(232, 168, 76, 0.03) 0%, transparent 50%);
+  background-attachment: fixed;
 }
 
-/* 数值型内容使用 monospace */
 .stat-number, .mono-value {
   font-family: "IBM Plex Mono", "JetBrains Mono", "Cascadia Code", "Fira Code", monospace;
 }
 
-/* 滚动条美化（暗色主题） */
+/* 滚动条 */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -196,10 +192,28 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(139, 148, 158, 0.3);
+  background: rgba(139, 133, 118, 0.25);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 148, 158, 0.5);
+  background: rgba(139, 133, 118, 0.4);
+}
+
+/* 柔和阴影工具类 */
+.shadow-soft {
+  box-shadow: 0 1px 3px rgba(61, 57, 41, 0.06), 0 4px 12px rgba(61, 57, 41, 0.04);
+}
+
+.shadow-warm {
+  box-shadow: 0 2px 8px rgba(45, 157, 142, 0.08), 0 8px 24px rgba(61, 57, 41, 0.06);
+}
+
+/* 卡片悬浮效果 */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(45, 157, 142, 0.1), 0 12px 32px rgba(61, 57, 41, 0.08);
 }

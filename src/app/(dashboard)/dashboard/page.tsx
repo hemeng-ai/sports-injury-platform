@@ -87,15 +87,20 @@ function generateSparklineData(peak: number, points = 8) {
 /** 骨架卡片 */
 function StatCardSkeleton() {
   return (
-    <Card className="animate-pulse">
+    <Card className="pointer-events-none">
       <CardContent className="p-5">
-        <div className="flex items-start justify-between">
-          <div className="flex-1 space-y-3">
-            <div className="h-4 w-20 bg-muted rounded" />
-            <div className="h-9 w-14 bg-muted rounded" />
-            <div className="h-3 w-16 bg-muted rounded" />
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0 space-y-3 animate-pulse">
+            <div className="flex items-center gap-2">
+              <div className="h-4 w-4 bg-muted rounded" />
+              <div className="h-3 w-16 bg-muted rounded" />
+            </div>
+            <div className="h-8 w-14 bg-muted rounded" />
+            <div className="h-3 w-12 bg-muted rounded" />
           </div>
-          <div className="h-10 w-10 rounded-lg bg-muted" />
+          <div className="flex-shrink-0 animate-pulse" style={{ width: 80, height: 40 }}>
+            <div className="w-full h-full bg-muted rounded" />
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -173,30 +178,9 @@ export default function DashboardPage() {
     fetchData();
   }, [fetchData]);
 
-  // 加载中
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-4 gap-4">
-          {CARD_CONFIGS.map((c) => (
-            <StatCardSkeleton key={c.key} />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (!stats) {
-    return (
-      <p className="text-muted-foreground">暂无数据</p>
-    );
-  }
-
-  const allZero =
-    stats.totalFiles === 0 &&
-    stats.totalIndicators === 0 &&
-    stats.recentUploads === 0 &&
-    stats.totalUsers === 0;
+  const allZero = stats
+    ? stats.totalFiles === 0 && stats.totalIndicators === 0 && stats.recentUploads === 0 && stats.totalUsers === 0
+    : false;
 
   return (
     <div className="space-y-6">
@@ -205,7 +189,11 @@ export default function DashboardPage() {
       {/* ==================== 统计卡片 ==================== */}
       <div className="grid grid-cols-4 gap-4">
         {CARD_CONFIGS.map((config) => (
-          <StatCard key={config.key} config={config} stats={stats} />
+          loading ? (
+            <StatCardSkeleton key={config.key} />
+          ) : stats ? (
+            <StatCard key={config.key} config={config} stats={stats} />
+          ) : null
         ))}
       </div>
 

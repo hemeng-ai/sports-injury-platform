@@ -4,8 +4,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-} from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -43,8 +41,7 @@ export default function AnalysisPage() {
 
   // 加载指标列表
   useEffect(() => {
-    fetch("/api/indicators?limit=100").then((r) => r.json())
-      .then((d) => setIndicators(d.indicators || []));
+    fetch("/api/indicators?limit=100").then((r) => { if (!r.ok) throw new Error("API error"); return r.json(); }).then((d) => setIndicators(d.indicators || [])).catch(() => toast.error("加载指标列表失败"));
   }, []);
 
   const parseManualValues = (text: string): number[] => {
