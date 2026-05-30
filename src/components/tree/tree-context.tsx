@@ -78,6 +78,7 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const moveNode = useCallback((_id: string, _newParentId: string | null, _newSortOrder: number) => {
     // 拖拽排序暂时通过刷新树来反映
   }, []);

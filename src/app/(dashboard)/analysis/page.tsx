@@ -2,11 +2,9 @@
 
 // 数据分析页面 — 三栏布局：指标选择 | 图表 | 统计结果
 import { useState, useEffect, useCallback } from "react";
-import { createClient } from "@/lib/supabase-client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, BarChart, Bar, Legend, ZAxis,
+  LineChart, Line, BarChart, Bar, Legend,
 } from "recharts";
 import { BarChart3 } from "lucide-react";
 import { toast } from "sonner";
@@ -28,9 +26,9 @@ interface Indicator {
 
 export default function AnalysisPage() {
 
-  const [indicators, setIndicators] = useState<Indicator[]>([]);
-  const [selectedX, setSelectedX] = useState("");
-  const [selectedY, setSelectedY] = useState("");
+  const [, setIndicators] = useState<Indicator[]>([]);
+  const [selectedX] = useState("");
+  const [selectedY] = useState("");
   const [activeTab, setActiveTab] = useState("descriptive");
 
   // 分析结果

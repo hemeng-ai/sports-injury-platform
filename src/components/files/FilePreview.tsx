@@ -5,7 +5,6 @@ import { useState, useEffect, useCallback } from "react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, Loader2, AlertTriangle, Download } from "lucide-react";
 import { formatFileSize } from "@/lib/upload-utils";
 

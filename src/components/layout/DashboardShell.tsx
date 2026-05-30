@@ -8,11 +8,10 @@ import Link from "next/link";
 import {
   LayoutDashboard, Files, BarChart3, FileSpreadsheet,
   Settings, Users, LogOut, ChevronLeft, ChevronRight,
-  Menu, User as UserIcon,
+  Menu,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import ThemeToggle from "@/components/layout/ThemeToggle";
 import { PasswordReminder } from "@/components/auth/PasswordReminder";
 import { createClient } from "@/lib/supabase-client";
@@ -32,12 +31,6 @@ const NAV_ITEMS: NavItem[] = [
   { title: "用户管理", href: "/users", icon: Users, minRole: "SUPERADMIN" },
   { title: "系统设置", href: "/settings", icon: Settings, minRole: "ADMIN" },
 ];
-
-const ROLE_LABELS: Record<string, string> = {
-  SUPERADMIN: "超级管理员",
-  ADMIN: "管理员",
-  VISITOR: "游客",
-};
 
 export default function DashboardShell({
   children,
@@ -65,8 +58,6 @@ export default function DashboardShell({
   }, [supabase]);
 
   const role = user?.role || "VISITOR";
-  const roleLabel = ROLE_LABELS[role] || role;
-
   const roleHierarchy = ["VISITOR", "ADMIN", "SUPERADMIN"];
 
   const visibleItems = NAV_ITEMS.filter((item) => {
@@ -121,23 +112,8 @@ export default function DashboardShell({
         })}
       </nav>
 
-      {/* Bottom: User Info + Collapse + Sign Out */}
+      {/* Bottom: Collapse + Sign Out */}
       <div className="border-t p-2 space-y-2">
-        {/* User Info */}
-        <div
-          className={cn(
-            "flex items-center gap-2 px-2 py-1.5 rounded-md",
-            collapsed && "justify-center",
-          )}
-        >
-          <UserIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-          {!collapsed && (
-            <div className="min-w-0">
-              <p className="text-xs font-medium truncate">{user?.email || ""}</p>
-              <p className="text-[10px] text-muted-foreground">{roleLabel}</p>
-            </div>
-          )}
-        </div>
 
         {/* Collapse Toggle */}
         <Button

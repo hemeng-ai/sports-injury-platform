@@ -8,9 +8,9 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { PasswordReminder } from "@/components/auth/PasswordReminder";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Files, BarChart3, Upload, Users, FileText, PlusCircle, UserPlus, Clock } from "lucide-react";
+import { BarChart3, Upload, Users, FileText, PlusCircle, UserPlus, Clock } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
 import { toast } from "sonner";
 
@@ -247,7 +247,7 @@ export default function DashboardPage() {
           <Card>
             <CardContent className="p-0">
               <div className="divide-y divide-border">
-                {activities.map((act, i) => (
+                {activities.map((act) => (
                   <div key={act.id} className="flex items-center gap-4 px-5 py-3">
                     <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${ROLE_AVATAR_COLORS[act.role || ""] || ROLE_AVATAR_COLORS.VISITOR}`}>
                       <ActivityIcon type={act.type} />

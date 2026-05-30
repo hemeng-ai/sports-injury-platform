@@ -14,7 +14,7 @@ import {
   AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  Eye, Download, Trash2, FileText, Image, FileSpreadsheet, FolderOpen, X,
+  Eye, Download, Trash2, FileText, Image as ImageIcon, FileSpreadsheet, FolderOpen, X,
 } from "lucide-react";
 import { formatFileSize } from "@/lib/upload-utils";
 import FilePreview from "./FilePreview";
@@ -44,7 +44,7 @@ interface Props {
 }
 
 function getFileIcon(mimeType: string) {
-  if (mimeType.startsWith("image/")) return <Image className="h-5 w-5 text-green-400" />;
+  if (mimeType.startsWith("image/")) return <ImageIcon className="h-5 w-5 text-green-400" />;
   if (mimeType.startsWith("application/pdf")) return <FileText className="h-5 w-5 text-red-400" />;
   if (mimeType.includes("spreadsheet") || mimeType.includes("excel"))
     return <FileSpreadsheet className="h-5 w-5 text-emerald-400" />;

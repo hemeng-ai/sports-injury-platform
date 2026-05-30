@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 注册 API — POST /api/auth/register
  * 创建 Supabase Auth 用户 + 本地 User 记录
  */
@@ -18,7 +18,6 @@ function getSupabaseAdmin() {
   return _supabaseAdmin;
 }
 
-const VALID_ROLES = ["VISITOR", "ADMIN", "SUPERADMIN"] as const;
 
 export async function POST(request: Request): Promise<NextResponse> {
   let body: Record<string, unknown>;
@@ -77,6 +76,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     },
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { password: _pw, ...userWithoutPassword } = localUser;
 
   return NextResponse.json({

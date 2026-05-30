@@ -23,8 +23,7 @@ export default function ThemeToggle({ className, showLabel = false }: Props) {
 
   if (!mounted) {
     // 服务端渲染占位，避免 hydration mismatch
-    const Comp = showLabel ? Button : Button;
-    return (
+      return (
       <Button variant="ghost" size={showLabel ? "default" : "icon"} className={className} disabled>
         <span className={showLabel ? "" : "h-5 w-5"} />
         {showLabel && <span>加载中...</span>}

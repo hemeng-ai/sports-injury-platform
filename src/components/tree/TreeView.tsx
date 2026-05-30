@@ -16,7 +16,7 @@ interface TreeViewProps {
 }
 
 function TreeContent({ folderType, onSelectFolder }: TreeViewProps) {
-  const { treeData, setTreeData, selectNode, selectedId, expandedIds, toggleExpand, addChildNode } = useTreeContext();
+  const { treeData, setTreeData, selectedId, addChildNode } = useTreeContext();
   const [loading, setLoading] = useState(true);
   const [addingRoot, setAddingRoot] = useState(false);
   const [newRootName, setNewRootName] = useState("");
