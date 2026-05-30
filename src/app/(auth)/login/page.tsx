@@ -154,7 +154,7 @@ export default function LoginPage() {
 
           {/* 快捷登录 */}
           <div className="grid grid-cols-3 gap-2 mb-6">
-            {QUICK_LOGINS.map((ql, i) => {
+            {QUICK_LOGINS.map((ql) => {
               const Icon = ql.icon;
               const isPrimary = ql.role === "SUPERADMIN";
               const isSecondary = ql.role === "ADMIN";

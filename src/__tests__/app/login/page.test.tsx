@@ -1,4 +1,4 @@
-﻿import "@testing-library/jest-dom";
+import "@testing-library/jest-dom";
 /**
  * @jest-environment jsdom
  *
@@ -37,7 +37,7 @@ describe("登录页面", () => {
     render(<LoginPage />);
     expect(screen.getByText("超级管理员")).toBeInTheDocument();
     expect(screen.getByText("管理员")).toBeInTheDocument();
-    expect(screen.getByText("游客登录")).toBeInTheDocument();
+    expect(screen.getByText("访客登录")).toBeInTheDocument();
   });
 
   it("输入邮箱密码后提交调用 signInWithPassword", async () => {

@@ -1,6 +1,6 @@
-/**
+﻿/**
  * Dashboard Stats API 测试 — 直接测试 handleGet()
- * 从 @/lib/dashboard-stats 导入，通过依赖注入传入 mock jwtVerify
+ * v0.3.0: handleGet 已移除认证依赖，直接从数据库查询
  */
 
 // ---- jsdom polyfills ----
@@ -35,10 +35,16 @@ jest.mock("next/server", () => ({
   },
 }));
 
-let handleGet: (
-  request: Request,
-  jwtVerifyFn?: (...args: unknown[]) => Promise<unknown>,
-) => Promise<Response>;
+// ---- mock Prisma ----
+jest.mock("@/lib/prisma", () => ({
+  prisma: {
+    file: { count: jest.fn().mockResolvedValue(42) },
+    indicator: { count: jest.fn().mockResolvedValue(15) },
+    user: { count: jest.fn().mockResolvedValue(8) },
+  },
+}));
+
+let handleGet: () => Promise<Response>;
 
 beforeAll(async () => {
   const mod = await import("@/lib/dashboard-stats");
@@ -49,45 +55,19 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-/** 构建 mock Request */
-function buildRequest(withCookie: boolean): Request {
-  return {
-    headers: {
-      get: (name: string) =>
-        name === "cookie" && withCookie
-          ? "authjs.session-token=fake.jwt.token"
-          : null,
-    },
-  } as unknown as Request;
-}
-
 // ==================== 测试用例 ====================
 
 describe("GET /api/dashboard/stats", () => {
-  it("已认证用户返回 200 + 统计数据 JSON", async () => {
-    const mockVerify = jest.fn().mockResolvedValueOnce({
-      role: "ADMIN", sub: "u1",
-    });
-
-    const response = await handleGet(buildRequest(true), mockVerify);
+  it("返回 200 + 统计数据 JSON", async () => {
+    const response = await handleGet();
 
     expect(response.status).toBe(200);
-    expect(mockVerify).toHaveBeenCalledTimes(1);
     const body = await response.json();
     expect(body).toBeDefined();
   });
 
-  it("未认证用户（无 cookie）返回 401", async () => {
-    const response = await handleGet(buildRequest(false));
-    expect(response.status).toBe(401);
-  });
-
   it("返回数据包含所有必需字段", async () => {
-    const mockVerify = jest.fn().mockResolvedValueOnce({
-      role: "ADMIN", sub: "u1",
-    });
-
-    const response = await handleGet(buildRequest(true), mockVerify);
+    const response = await handleGet();
     const body = (await response.json()) as Record<string, unknown>;
 
     expect(body).toHaveProperty("totalFiles");
@@ -101,11 +81,7 @@ describe("GET /api/dashboard/stats", () => {
   });
 
   it("每个统计值都是期望类型", async () => {
-    const mockVerify = jest.fn().mockResolvedValueOnce({
-      role: "ADMIN", sub: "u1",
-    });
-
-    const response = await handleGet(buildRequest(true), mockVerify);
+    const response = await handleGet();
     const body = (await response.json()) as Record<string, unknown>;
 
     expect(typeof body.totalFiles).toBe("number");

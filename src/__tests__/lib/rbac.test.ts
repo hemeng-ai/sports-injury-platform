@@ -187,8 +187,6 @@ describe("hasMinRole — 最小角色检查", () => {
 // checkApiPermission 测试 — API 权限校验
 // ===================================================================
 describe("checkApiPermission — API 权限校验", () => {
-  const AUTH_SECRET = "test-secret-key-for-jwt-verification";
-
   /**
    * 辅助函数：创建带有模拟 cookie 的 Request 对象
    */
